@@ -1,0 +1,10 @@
+prefix=/usr
+
+
+Name: Dummy
+Description: dummy
+Version: 0.0.0
+Requires: deps >= 0.0.0
+Requires.private:
+Libs: -ldummy
+Cflags: -Idummy

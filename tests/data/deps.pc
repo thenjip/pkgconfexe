@@ -1,0 +1,7 @@
+Name: Deps
+Description: deps
+Version: 0.0.0
+Requires:
+Requires.private:
+Libs: -ldeps
+Cflags: -Ideps
