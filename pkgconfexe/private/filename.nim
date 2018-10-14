@@ -24,7 +24,7 @@ else:
     ForbiddenLastChars* = ForbiddenChars
 
 const
-  ShortOptionPrefix* = "-"
+  ShortOptionPrefix* = '-'
 
 
 
@@ -65,14 +65,16 @@ func isFileName* (x: string): bool {. locks: 0 .} =
   if x.len() == 0:
     return false
 
-  if x.startsWith(ShortOptionPrefix):
+  let skipIndex = x.skipWhiteSpaces(x.low())
+
+  if x.runeAt(skipIndex) == ShortOptionPrefix:
     return false
 
   let (lastRune, lastRuneLen) = x.lastRune(x.high())
   if lastRune in ForbiddenLastChars:
     return false
 
-  for r in x[x.low()..x.high() - lastRuneLen].runes():
+  for r in x[skipIndex..x.high() - lastRuneLen].runes():
     if r in ForbiddenChars:
       return false
 

@@ -1,5 +1,7 @@
 from std/ospaths import PathSep
-import std/[ strformat, strutils ]
+import std/[ strformat, strutils, unicode ]
+
+import private/[ filename, path, utf8 ]
 
 
 
@@ -9,34 +11,43 @@ type
     PkgConfigPath = "PKG_CONFIG_PATH"
     PkgConfigSysrootDir = "PKG_CONFIG_SYSROOT_DIR"
 
-  EnvInfo* = tuple
-    libdirs: seq[string]
-    pkgPaths: seq[string]
-    sysrootDir: string
+  EnvVarValue* = tuple
+    envVar: EnvVar
+    val: string
 
 
 
-func `$`* (info: EnvInfo): string {. locks: 0 .} =
-  var results: seq[string]
+func validateEnvVarValue* (v: EnvVarValue):  bool {. locks: 0 .} =
+  case v.envVar:
+    of PkgConfigLibdir, PkgConfigPath:
+      for p in v.val.split(PathSep.toRune()):
+        if not p.isPath():
+          return false
+    of PkgConfigSysrootDir:
+      if not v.val.isPath():
+        return false
 
-  for ev in EnvVar:
-    result.add(fmt"""{$ev}="""")
+  result = true
 
-    case ev:
-      of PkgConfigLibdir:
-        result.add(info.libdirs.join($PathSep))
-      of PkgConfigPath:
-        result.add(info.pkgPaths.join($PathSep))
-      of PkgConfigSysrootDir:
-        result.add(info.sysrootDir)
 
-    result.add('\"')
-    results.add(result)
-    result = ""
+func buildEnv* (values: openarray[EnvVarValue]): string {.
+  locks: 0, raises: [ ValueError ]
+.} =
+  var
+    envVars: set[EnvVar]
+    results: seq[string]
+
+  for v in values:
+    if v.envVar in envVars:
+      raise newException(ValueError, fmt""""{$v.envVar}" is already set.""")
+
+    if not v.validateEnvVarValue():
+      raise newException(
+        ValueError,
+        fmt"""Invalid value for "{$v.envVar}": {v.val}"""
+      )
+
+    results.add(fmt"""{$v.envVar}="{v.val}{'"'}""")
+    envVars.incl(v.envVar)
 
   result = results.join($' ')
-
-
-
-func buildEnv* (info: EnvInfo): string {. locks: 0 .} =
-  result = $info

@@ -1,4 +1,4 @@
-from std/ospaths import PathSep
+from std/ospaths import CurDir, DirSep, PathSep
 import std/[ strformat, strutils, unittest ]
 
 import pkgconfexe/env
@@ -10,27 +10,18 @@ include "data.nims"
 
 
 suite "env":
-  test "$":
-    const Info: EnvInfo = (libdirs: @[], pkgPaths: @[ DataDir ], sysrootDir: "")
-
-    check($Info == fmt"""{$EnvVar.PkgConfigPath}="{DataDir}"""")
-
-
   test "buildEnv":
     const
-      libdir1 = "/usr/lib/pkgconfig"
-      libdir2 = "/usr/lib64/pkgconfig"
-
-      Info: EnvInfo = (
-        libdirs: @[ libdir1, libdir2 ],
-        pkgPaths: @[ DataDir ],
-        sysrootDir: ""
+      SomeEnvVarValue: EnvVarValue = (
+        envVar: EnvVar.PkgConfigPath,
+        val: [ DataDir, fmt"{CurDir}{DirSep}{DataDir}" ].join($PathSep)
       )
+      InvalidFileName = DataDir & '\0' & 'a'
 
-    check(
-      buildEnv(Info) ==
-        fmt"""{$EnvVar.PkgConfigLibdir}="{libdir1}{PathSep}{libdir2}"""" &
-        ' ' &
-        fmt"""{$EnvVar.PkgConfigPath}="{DataDir}""""
+    check:
+      buildEnv([ SomeEnvVarValue ]) ==
+        fmt"""{$SomeEnvVarValue.envVar}="{SomeEnvVarValue.val}{'"'}"""
 
-    )
+    expect ValueError:
+      discard buildEnv([ SomeEnvVarValue, SomeEnvVarValue ])
+      discard buildEnv([(envVar: EnvVar.PkgConfigLibdir, val: InvalidFileName)])

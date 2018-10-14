@@ -1,4 +1,4 @@
-import std/[ ospaths, strformat, strutils ]
+import std/[ ospaths, sugar, strformat, strutils ]
 
 import env, module
 
@@ -9,58 +9,53 @@ export env, module
 
 
 
-const
-  CmdName* = "pkgconfexe"
-
-  DefaultEnvInfo*: EnvInfo = (libdirs: @[], pkgPaths: @[], sysrootDir: "")
+const CmdName* = "pkgconf".addFileExt(ExeExt)
 
 
 
-type Action* {. pure .} = enum
-  CFlags = "--cflags"
-  LdFlags = "--ldflags"
+type
+  Action* {. pure .} = enum
+    CFlags = "--cflags"
+    LdFlags = "--ldflags"
+
+  ModuleEnv* = tuple
+    m: Module
+    envVars: seq[EnvVarValue]
 
 
 
-func buildCmdLine* (m: Module; a: Action; info: EnvInfo): string {.
-  locks: 0
-.} =
+func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
   let
     cmd =
-      if m.version.len() == 0:
-        fmt"""{CmdName} {$a} "{m.pkg}" """
+      if me.m.version.len() == 0:
+        fmt"""{CmdName} {$a} "{me.m.pkg}{'"'}"""
       else:
-        fmt"""{CmdName} {$a} {m.op.option()} "{m.version}" "{m.pkg}" """
-    env = info.buildEnv()
+        fmt"{CmdName} {$a} " &
+          """{me.m.op.option()} "{me.m.version}" "{me.m.pkg}{'"'}"""
+    env = me.envVars.buildEnv()
 
   result =
     if env.len() == 0:
       cmd
     else:
-      fmt"{info.buildEnv()} {cmd}"
+      fmt"{env} {cmd}"
 
 
 
-func getCFlags* (
-  modules: openarray[Module];
-  info: EnvInfo = DefaultEnvInfo
-): string {. compileTime, locks: 0 .} =
+func getCFlags* (modEnvs: openarray[ModuleEnv]): string {. compileTime .} =
   var results: seq[string]
 
-  for m in modules:
-    results.add(staticExec(m.buildCmdLine(Action.CFlags, info)))
+  for me in modEnvs:
+    results.add(staticExec(me.buildCmdLine(Action.CFlags)))
 
   result = results.join($' ')
 
 
-func getLdFlags* (
-  modules: openarray[Module];
-  info: EnvInfo = DefaultEnvInfo
-): string {. compileTime, locks: 0 .} =
+func getLdFlags* (modEnvs: openarray[ModuleEnv]): string {. compileTime .} =
   var results: seq[string]
 
-  for m in modules:
-    results.add(staticExec(m.buildCmdLine(Action.LdFlags, info)))
+  for me in modEnvs:
+    results.add(staticExec(me.buildCmdLine(Action.LdFlags)))
 
   result = results.join($' ')
 

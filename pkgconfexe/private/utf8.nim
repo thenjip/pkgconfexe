@@ -4,6 +4,12 @@ import pkg/unicodeplus
 
 
 
+func toRune* (c: char): Rune {. locks: 0 .} =
+  let str = $c
+  result = str.runeAt(str.low())
+
+
+
 func `==`* (r: Rune; c: char): bool {. locks: 0 .} =
   let str = $c
   result = r == str.runeAt(str.low())
