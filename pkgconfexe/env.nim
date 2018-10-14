@@ -17,6 +17,11 @@ type
 
 
 
+func `$`* (v: EnvVarValue): string {. locks: 0 .} =
+  result = fmt"""{$v.envVar}="{v.val}{'"'}"""
+
+
+
 func validateEnvVarValue* (v: EnvVarValue):  bool {. locks: 0 .} =
   case v.envVar:
     of PkgConfigLibdir, PkgConfigPath:
@@ -28,6 +33,7 @@ func validateEnvVarValue* (v: EnvVarValue):  bool {. locks: 0 .} =
         return false
 
   result = true
+
 
 
 func buildEnv* (values: openarray[EnvVarValue]): string {.
@@ -47,7 +53,7 @@ func buildEnv* (values: openarray[EnvVarValue]): string {.
         fmt"""Invalid value for "{$v.envVar}": {v.val}"""
       )
 
-    results.add(fmt"""{$v.envVar}="{v.val}{'"'}""")
+    results.add($v)
     envVars.incl(v.envVar)
 
   result = results.join($' ')

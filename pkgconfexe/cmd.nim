@@ -30,8 +30,10 @@ func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
       if me.m.version.len() == 0:
         fmt"""{CmdName} {$a} "{me.m.pkg}{'"'}"""
       else:
-        fmt"{CmdName} {$a} " &
-          """{me.m.op.option()} "{me.m.version}" "{me.m.pkg}{'"'}"""
+        fmt(
+          "{CmdName} {$a} " &
+            """{me.m.op.option()} "{me.m.version}" "{me.m.pkg}{'"'}"""
+        )
     env = me.envVars.buildEnv()
 
   result =
