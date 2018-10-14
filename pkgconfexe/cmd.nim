@@ -42,7 +42,9 @@ func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
 
 
 
-func getCFlags* (modEnvs: openarray[ModuleEnv]): string {. compileTime .} =
+func getCFlags* (modEnvs: openarray[ModuleEnv]): string {.
+  compileTime, locks: 0
+.} =
   var results: seq[string]
 
   for me in modEnvs:
@@ -51,7 +53,9 @@ func getCFlags* (modEnvs: openarray[ModuleEnv]): string {. compileTime .} =
   result = results.join($' ')
 
 
-func getLdFlags* (modEnvs: openarray[ModuleEnv]): string {. compileTime .} =
+func getLdFlags* (modEnvs: openarray[ModuleEnv]): string {.
+  compileTime, locks: 0
+.} =
   var results: seq[string]
 
   for me in modEnvs:
