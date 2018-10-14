@@ -1,7 +1,7 @@
 from std/ospaths import PathSep
 import std/[ strformat, strutils, unicode ]
 
-import private/[ filename, path, utf8 ]
+import private/[ filename, identifier, path, utf8 ]
 
 
 
@@ -41,7 +41,7 @@ func buildEnv* (values: openarray[EnvVarValue]): string {.
 .} =
   var
     envVars: set[EnvVar]
-    results: seq[string]
+    results = newSeqOfCap[string](values.len())
 
   for v in values:
     if v.envVar in envVars:
@@ -57,3 +57,9 @@ func buildEnv* (values: openarray[EnvVarValue]): string {.
     envVars.incl(v.envVar)
 
   result = results.join($' ')
+
+
+
+static:
+  for e in EnvVar:
+    doAssert(($e).isIdentifier())
