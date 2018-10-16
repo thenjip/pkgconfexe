@@ -1,7 +1,7 @@
 import env, module
 import private/filename
 
-import std/[ ospaths, sugar, strformat, strutils ]
+import std/[ macros, ospaths, strformat, strutils ]
 
 
 export env, module
@@ -43,26 +43,30 @@ func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
 
 
 
-func getCFlags* (modEnvs: openarray[ModuleEnv]): string {.
-  compileTime, locks: 0
-.} =
+macro execCmds (action: Action; modEnvs: varargs[ModuleEnv]): string =
+# join([ staticExec(modEnv1.buildCmdLine(action)), ... ], ' ')
+  var cmds = nnkBracket.newTree()
+
+  for me in modEnvs:
+    cmds.add(newCall("staticExec", newCall("buildCmdLine", me, action)))
+
+  result = newCall("join", cmds, newLit(' '))
+#[
   var results = newSeqofCap[string](modEnvs.len())
 
   for me in modEnvs:
-    results.add(staticExec(me.buildCmdLine(Action.CFlags)))
+    results.add(staticExec(me.buildCmdLine(action)))
 
   result = results.join($' ')
+]#
 
 
-func getLdFlags* (modEnvs: openarray[ModuleEnv]): string {.
-  compileTime, locks: 0
-.} =
-  var results = newSeqofCap[string](modEnvs.len())
+template getCFlags* (modEnvs: varargs[ModuleEnv]): string =
+  execCmds(Action.CFlags, modEnvs)
 
-  for me in modEnvs:
-    results.add(staticExec(me.buildCmdLine(Action.LdFlags)))
 
-  result = results.join($' ')
+template getLdFlags* (modEnvs: varargs[ModuleEnv]): string =
+  execCmds(Action.LdFlags, modEnvs)
 
 
 
