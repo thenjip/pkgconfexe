@@ -43,26 +43,27 @@ func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
 
 
 
-func getCFlags* (modEnvs: openarray[ModuleEnv]): string {.
+func execCmds (action: Action; modEnvs: openarray[ModuleEnv]): string {.
   compileTime, locks: 0
 .} =
   var results = newSeqofCap[string](modEnvs.len())
 
   for me in modEnvs:
-    results.add(staticExec(me.buildCmdLine(Action.CFlags)))
+    results.add(staticExec(me.buildCmdLine(action)))
 
   result = results.join($' ')
+
+
+func getCFlags* (modEnvs: openarray[ModuleEnv]): string {.
+  compileTime, locks: 0
+.} =
+  result = execCmds(Action.CFlags, modEnvs)
 
 
 func getLdFlags* (modEnvs: openarray[ModuleEnv]): string {.
   compileTime, locks: 0
 .} =
-  var results = newSeqofCap[string](modEnvs.len())
-
-  for me in modEnvs:
-    results.add(staticExec(me.buildCmdLine(Action.LdFlags)))
-
-  result = results.join($' ')
+  result = execCmds(Action.LdFlags, modEnvs)
 
 
 
