@@ -1,7 +1,7 @@
+import private/[ filename, identifier, path, utf8 ]
+
 from std/ospaths import PathSep
 import std/[ strformat, strutils, unicode ]
-
-import private/[ filename, identifier, path, utf8 ]
 
 
 

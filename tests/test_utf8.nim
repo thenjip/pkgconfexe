@@ -1,6 +1,6 @@
-import std/[ strscans, unicode, unittest ]
-
 import pkgconfexe/private/utf8
+
+import std/[ strscans, unicode, unittest ]
 
 
 

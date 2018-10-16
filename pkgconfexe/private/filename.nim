@@ -1,7 +1,7 @@
+import utf8
+
 from std/ospaths import Curdir, DirSep, ParDir, PathSep
 import std/[ strutils, unicode ]
-
-import utf8
 
 
 

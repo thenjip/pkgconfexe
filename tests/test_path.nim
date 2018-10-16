@@ -1,6 +1,6 @@
-import std/[ ospaths, unittest ]
-
 import pkgconfexe/private/path
+
+import std/[ ospaths, unittest ]
 
 
 

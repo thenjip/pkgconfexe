@@ -1,7 +1,7 @@
+import pkgconfexe/env
+
 from std/ospaths import CurDir, DirSep, PathSep
 import std/[ strformat, strutils, unittest ]
-
-import pkgconfexe/env
 
 
 

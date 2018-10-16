@@ -1,6 +1,6 @@
-import std/unicode except isWhiteSpace
-
 import pkg/unicodeplus
+
+import std/unicode except isWhiteSpace
 
 
 

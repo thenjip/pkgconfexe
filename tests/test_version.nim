@@ -1,6 +1,6 @@
-import std/[ strscans, unittest ]
-
 import pkgconfexe/version
+
+import std/[ strscans, unittest ]
 
 
 

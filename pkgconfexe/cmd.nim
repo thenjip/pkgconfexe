@@ -1,8 +1,7 @@
-import std/[ ospaths, sugar, strformat, strutils ]
-
 import env, module
-
 import private/filename
+
+import std/[ ospaths, sugar, strformat, strutils ]
 
 
 export env, module

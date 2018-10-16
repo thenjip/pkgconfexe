@@ -1,6 +1,6 @@
-import std/[ strformat, unicode ]
-
 import private/utf8
+
+import std/[ strformat, unicode ]
 
 
 

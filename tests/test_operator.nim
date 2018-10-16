@@ -1,6 +1,6 @@
-import std/[ strscans, unicode, unittest ]
-
 import pkgconfexe/operator
+
+import std/[ strscans, unicode, unittest ]
 
 
 

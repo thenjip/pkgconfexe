@@ -1,8 +1,8 @@
-import std/unicode except isAlpha
+import utf8
 
 import pkg/unicodeplus
 
-import utf8
+import std/unicode except isAlpha
 
 
 

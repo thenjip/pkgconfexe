@@ -1,9 +1,9 @@
-import std/[ strscans, unicode ]
+import package
+import private/utf8
 
 import pkg/unicodedb
 
-import package
-import private/utf8
+import std/[ strscans, unicode ]
 
 
 

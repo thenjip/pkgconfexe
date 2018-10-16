@@ -1,6 +1,6 @@
-import std/[ os, unittest ]
-
 import pkgconfexe/private/filename
+
+import std/[ os, unittest ]
 
 
 

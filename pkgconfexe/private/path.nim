@@ -1,7 +1,7 @@
+import filename, utf8
+
 from std/ospaths import CurDir, DirSep, ParDir
 import std/unicode
-
-import filename, utf8
 
 
 

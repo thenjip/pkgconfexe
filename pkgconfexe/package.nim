@@ -1,8 +1,8 @@
-import std/unicode
+import private/utf8
 
 import pkg/unicodedb
 
-import private/utf8
+import std/unicode
 
 
 

@@ -1,10 +1,10 @@
-import std/[ strformat, strscans ]
-import std/unicode except isWhiteSpace
+import operator, package, version
+import private/utf8
 
 import pkg/unicodeplus
 
-import operator, package, version
-import private/utf8
+import std/[ strformat, strscans ]
+import std/unicode except isWhiteSpace
 
 
 export operator

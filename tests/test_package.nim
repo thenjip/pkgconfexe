@@ -1,7 +1,6 @@
-import std/[ os, strformat, strscans, unittest ]
-
 import pkgconfexe/package
 
+import std/[ os, strformat, strscans, unittest ]
 
 
 include "data.nims"

@@ -1,4 +1,4 @@
-import pkgconfexe/module
+import pkgconfexe/[ cmd, module ]
 
 
 

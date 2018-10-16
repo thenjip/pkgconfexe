@@ -1,7 +1,7 @@
+import pkgconfexe/cmd
+
 from ospaths import CurDir, DirSep
 import std/[ strformat, unittest ]
-
-import pkgconfexe/cmd
 
 
 
