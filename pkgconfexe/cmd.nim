@@ -1,7 +1,7 @@
 import env, module
 import private/filename
 
-import std/[ ospaths, sugar, strformat, strutils ]
+import std/[ ospaths, strformat, strutils ]
 
 
 export env, module
@@ -23,7 +23,7 @@ type
 
 
 
-func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
+func buildCmdLine* (a: Action; me: ModuleEnv): string {. locks: 0 .} =
   let
     cmd =
       if me.m.version.len() == 0:
@@ -36,7 +36,7 @@ func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
     env = me.envVars.buildEnv()
 
   result =
-    if env.len() == 0:
+    if me.envVars.len() == 0:
       cmd
     else:
       fmt"{env} {cmd}"
@@ -49,7 +49,7 @@ func execCmds (action: Action; modEnvs: openarray[ModuleEnv]): string {.
   var results = newSeqofCap[string](modEnvs.len())
 
   for me in modEnvs:
-    results.add(staticExec(me.buildCmdLine(action)))
+    results.add(staticExec(action.buildCmdLine(me)))
 
   result = results.join($' ')
 

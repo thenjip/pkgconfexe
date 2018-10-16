@@ -4,7 +4,6 @@ from ospaths import CurDir, DirSep
 import std/[ strformat, unittest ]
 
 
-
 include "data.nims"
 
 
@@ -18,14 +17,14 @@ const
   ]
 
   CFlags1 = getCFlags([
-    (m: DummyPkg.toModule(), envVars: SomeEnvVarValues),
-    (m: DepsPkg.toModule(), envVars: ())
+    (m: DummyPkg.toModule(), envVars: @SomeEnvVarValues),
+    (m: DepsPkg.toModule(), envVars: @[])
   ])
   CFlags2 = getCFlags([
-    (m: DummyPkg & " >= 0.0".toModule(), envVars: SomeEnvVarValues)
+    (m: fmt"{DummyPkg} >= 0.0".toModule(), envVars: @SomeEnvVarValues)
   ])
 
-  LdFlags = getLdFlags([ (m: DepsPkg.toModule(), envVars: SomeEnvVarValues) ])
+  LdFlags = getLdFlags([ (m: DepsPkg.toModule(), envVars: @SomeEnvVarValues) ])
 
 
 
@@ -35,11 +34,11 @@ suite "cmd":
 
     check:
       buildCmdLine(
-        (m: DummyPkg.toModule(), envVars: ()),
+        (m: DummyPkg.toModule(), envVars: @[]),
         Action.CFlags
       ) == fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
       buildCmdLine(
-        (m: DepsPkg.toModule(), envVars: SomeEnvVarValues),
+        (m: DepsPkg.toModule(), envVars: @SomeEnvVarValues),
         Action.LdFlags
       ) == fmt(
         "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags} " &
