@@ -49,8 +49,7 @@ func buildEnv* (values: openarray[EnvVarValue]): string {.
 
     if not v.validateEnvVarValue():
       raise newException(
-        ValueError,
-        fmt"""Invalid value for "{$v.envVar}": {v.val}"""
+        ValueError, fmt"""Invalid value for "{$v.envVar}": {v.val}"""
       )
 
     results.add($v)

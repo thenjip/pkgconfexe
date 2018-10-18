@@ -9,7 +9,7 @@ include "data.nims"
 
 
 const
-  SomeEnvVarValues = [
+  SomeEnvVarValues: array[0, EnvVarValue] = [
     (
       envVar: EnvVar.PkgConfigPath,
       val: fmt("{CurDir}{DirSep}{DataDir}")
@@ -33,13 +33,11 @@ suite "cmd":
     const DepsModule = DepsPkg.toModule()
 
     check:
+      buildCmdLine(Action.CFlags, (m: DummyPkg.toModule(), envVars: @[])) ==
+        fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
       buildCmdLine(
-        (m: DummyPkg.toModule(), envVars: @[]),
-        Action.CFlags
-      ) == fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
-      buildCmdLine(
-        (m: DepsPkg.toModule(), envVars: @SomeEnvVarValues),
-        Action.LdFlags
+        Action.LdFlags,
+        (m: DepsPkg.toModule(), envVars: @SomeEnvVarValues)
       ) == fmt(
         "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags} " &
           """{DepsModule.op.option()} "{DepsModule.version}{'"'}""" &

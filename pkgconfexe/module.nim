@@ -54,7 +54,6 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
 
 func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
   if not s.scanf(
-    "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]$.",
-    result
+    "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]$.", result
   ):
     raise newException(ValueError, fmt""""{s}" is not a valid module.""")
