@@ -7,5 +7,6 @@ const Tests = [
   "version",
   "module",
   "env",
-  "cmd"
+  "cmd",
+  "pkgconfexe"
 ]

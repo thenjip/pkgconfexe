@@ -1,0 +1,4 @@
+import pkgconfexe
+
+
+{. checkModules: [ "" ] .}

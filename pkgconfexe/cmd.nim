@@ -24,7 +24,7 @@ type
 
 
 func buildCmdLine* (me: ModuleEnv; a: Action): string {. locks: 0 .} =
-  const cmd =
+  let cmd =
     if me.m.version.len() == 0:
       fmt"""{CmdName} {$a} "{me.m.pkg}{'"'}"""
     else:

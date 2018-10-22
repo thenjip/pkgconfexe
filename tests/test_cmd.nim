@@ -12,7 +12,7 @@ const
   SomeEnvVarValues: array[0, EnvVarValue] = [
     (
       envVar: EnvVar.PkgConfigPath,
-      val: fmt("{CurDir}{DirSep}{DataDir}")
+      val: fmt"{CurDir}{DirSep}{DataDir}"
     )
   ]
 
