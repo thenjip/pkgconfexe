@@ -81,12 +81,12 @@ type
 * unicodedb >= 0.5.2
 * unicodeplus >= 0.3.2
 
-* The pkgconf executable in the current workind directory or $PATH (only needed at compile time)
+* The pkgconf executable in the current working directory or $PATH (only needed at compile time)
 
 ## TODO
 
 - [ ] Support for all environment variables used by pkgconf
 - [ ] Support for all version comparators (<<, >>, !=)
 - [ ] Support for all compiler flag results given by pkgconf (e.g. --cflags-only-I)
-- [ ] API to specify parameters/options to the command line generator
+- [ ] API to specify parameters/options with the DSL
 - [ ] API to get other types of result than compiler flags given by pkgconf
