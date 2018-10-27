@@ -17,43 +17,43 @@ type
 
 
 
-func `$`* (v: EnvVarValue): string {. locks: 0 .} =
-  result = fmt"""{$v.envVar}="{v.val}{'"'}"""
+func `$`* (e: EnvVarValue): string {. locks: 0 .} =
+  result = fmt"""{$e.envVar}="{e.val}{'"'}"""
 
 
 
-func validateEnvVarValue* (v: EnvVarValue):  bool {. locks: 0 .} =
-  case v.envVar:
+func validateEnvVarValue* (e: EnvVarValue):  bool {. locks: 0 .} =
+  case e.envVar:
     of PkgConfigLibdir, PkgConfigPath:
-      for p in v.val.split(PathSep.toRune()):
+      for p in e.val.split(PathSep.toRune()):
         if not p.isPath():
           return false
     of PkgConfigSysrootDir:
-      if not v.val.isPath():
+      if not e.val.isPath():
         return false
 
   result = true
 
 
 
-func buildEnv* (values: openarray[EnvVarValue]): string {.
+func buildEnv* (env: openarray[EnvVarValue]): string {.
   locks: 0, raises: [ ValueError ]
 .} =
   var
     envVars: set[EnvVar]
-    results = newSeqOfCap[string](values.len())
+    results = newSeqOfCap[string](env.len())
 
-  for v in values:
-    if v.envVar in envVars:
-      raise newException(ValueError, fmt""""{$v.envVar}" is already set.""")
+  for e in env:
+    if e.envVar in envVars:
+      raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
 
-    if not v.validateEnvVarValue():
+    if not e.validateEnvVarValue():
       raise newException(
-        ValueError, fmt"""Invalid value for "{$v.envVar}": {v.val}"""
+        ValueError, fmt"""Invalid value for "{$e.envVar}": {e.val}"""
       )
 
-    results.add($v)
-    envVars.incl(v.envVar)
+    results.add($e)
+    envVars.incl(e.envVar)
 
   result = results.join($' ')
 

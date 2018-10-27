@@ -1,36 +1,73 @@
 import pkgconfexe/cmd
+import pkgconfexe/private/dslhelper
 
 import std/macros
 
 
-
-template checkModules* (modules: varargs[string]): untyped =
-  {. addCFlags(modules), addLdFlags(modules) .}
+export env
 
 
-macro addCFlags* (modules: varargs[string]): untyped =
-  var args = nnkbracket.newNode()
 
-  for m in modules:
-    args.add(nnkpar.newNimNode(
-      newCall("toModule", m),
-      newCall("`@`", nnkBracket.newNimNode())
-    ))
+func toModules (mods: NimNode): NimNode {. locks: 0 .} =
+  doAssert(mods.isArrayOf[: string]())
 
-  result = nnkExprColonExpr.newNimNode(
-    bindSym("passC"), newCall("getCFlags", args)
+  result = "module.toModules".bindSym().newCall(mods)
+
+
+
+macro withEnv* (env: varargs[EnvVarValue]): NimNode =
+  result = nnkBracket.newNimNode()
+
+  for e in env:
+    result.add(e)
+
+
+
+macro addCFlags* (modules: openarray[string]): untyped =
+
+  result = nnkExprColonExpr.newTree(
+    "passC".bindSym(),
+    "getCFlags".bindSym().newCall(modules.toModules(), withEnv())
   )
 
 
-macro addLdFlags* (modules: varargs[string]): untyped =
-  var args = nnkbracket.newNode()
+macro addLdFlags* (modules: openarray[string]): untyped =
+  result = nnkExprColonExpr.newTree(
+    "passL".bindSym(),
+    "getLdFlags".bindSym().newCall(modules.toModules(), withEnv())
+  )
 
-  for m in modules:
-    args.add(nnkpar.newNimNode(
-      newCall("toModule", m),
-      newCall("`@`", nnkBracket.newNimNode())
-    ))
 
-  result = nnkExprColonExpr.newNimNode(
-    bindSym("passL"), newCall("getLdFlags", args)
+macro checkModules* (modules: openarray[string]): untyped =
+  result = nnkPragmaExpr.newTree(
+    addCFlags(modules, body),
+    addLdFlags(modules, body)
+  )
+
+
+
+macro addCFlags* (modules: varargs[string]; body: untyped): untyped =
+  result = nnkPragma.newTree(
+    nnkExprColonExpr.newTree(
+      "passC".bindSym(),
+      "getCFlags".bindSym().newCall(modules.toModules(), body.getEnvFromBlock())
+    )
+  )
+
+
+macro addLdFlags* (modules: varargs[string]; body: untyped): untyped =
+  result = nnkPragma.newTree(
+    nnkExprColonExpr.newTree(
+      "passL".bindSym(),
+      "getLdFlags".bindSym().newCall(
+        modules.toModules(), body.getEnvFromBlock()
+      )
+    )
+  )
+
+
+macro checkModules* (modules: varargs[string]; body: untyped): untyped =
+  result = nnkStmtList.newTree(
+    addCFlags(modules, body),
+    addLdFlags(modules, body)
   )

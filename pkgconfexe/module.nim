@@ -57,3 +57,12 @@ func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
     "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]$.", result
   ):
     raise newException(ValueError, fmt""""{s}" is not a valid module.""")
+
+
+func toModules* (mods: openarray[string]): seq[Module] {.
+  locks: 0, raises: [ ValueError ]
+.} =
+  result = newSeqOfCap[Module](mods.len())
+
+  for m in mods:
+    result.add(m.toModule())

@@ -24,4 +24,5 @@ suite "env":
 
     expect ValueError:
       discard buildEnv([ SomeEnvVarValue, SomeEnvVarValue ])
+    expect ValueError:
       discard buildEnv([(envVar: EnvVar.PkgConfigLibdir, val: InvalidFileName)])

@@ -1,4 +1,0 @@
-import pkgconfexe
-
-
-{. checkModules: [ "" ] .}

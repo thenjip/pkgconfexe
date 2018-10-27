@@ -1,7 +1,6 @@
 import pkgconfexe/cmd
 
-from ospaths import CurDir, DirSep
-import std/[ strformat, unittest ]
+import std/[ ospaths, strformat, unittest ]
 
 
 include "data.nims"
@@ -12,19 +11,17 @@ const
   SomeEnvVarValues: array[0, EnvVarValue] = [
     (
       envVar: EnvVar.PkgConfigPath,
-      val: fmt"{CurDir}{DirSep}{DataDir}"
+      val: unixToNativePath(fmt"{DataDir}")
     )
   ]
 
-  CFlags1 = getCFlags([
-    (m: DummyPkg.toModule(), envVars: @SomeEnvVarValues),
-    (m: DepsPkg.toModule(), envVars: @[])
-  ])
-  CFlags2 = getCFlags([
-    (m: fmt"{DummyPkg} >= 0.0".toModule(), envVars: @SomeEnvVarValues)
-  ])
+  CFlags1 = getCFlags(
+    [ DummyPkg.toModule(), DepsPkg.toModule()],
+    SomeEnvVarValues
+  )
+  CFlags2 = getCFlags([ toModule(fmt"{DummyPkg} >= 0.0") ], SomeEnvVarValues)
 
-  LdFlags = getLdFlags([ (m: DepsPkg.toModule(), envVars: @SomeEnvVarValues) ])
+  LdFlags = getLdFlags([ DepsPkg.toModule() ], SomeEnvVarValues)
 
 
 
@@ -33,11 +30,12 @@ suite "cmd":
     const DepsModule = DepsPkg.toModule()
 
     check:
-      buildCmdLine(Action.CFlags, (m: DummyPkg.toModule(), envVars: @[])) ==
+      buildCmdLine(DummyPkg.toModule(), [], Action.CFlags) ==
         fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
       buildCmdLine(
-        Action.LdFlags,
-        (m: DepsPkg.toModule(), envVars: @SomeEnvVarValues)
+        [ m: DepsPkg.toModule() ],
+        SomeEnvVarValues,
+        Action.LdFlags
       ) == fmt(
         "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags} " &
           """{DepsModule.op.option()} "{DepsModule.version}{'"'}""" &

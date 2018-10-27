@@ -36,3 +36,8 @@ suite "module":
   test "toModule":
     for iter in Inputs.pairs():
       check(iter.val.toModule() == SomeModules[iter.key])
+
+    expect ValueError:
+      discard "".toModule()
+    expect ValueError:
+      discard "a  p".toModule()
