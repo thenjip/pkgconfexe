@@ -1,6 +1,6 @@
 import pkgconfexe/comparator
 
-import std/[ strscans, unicode, unittest ]
+import std/[ unicode, unittest ]
 
 
 
@@ -29,14 +29,12 @@ suite "comparator":
 
 
   test "scanfComparator":
-    const Pattern = "${scanfComparator}"
-
     for s in [ "", "ép>=" ]:
       var c: Comparator
-      check(not s.scanf(Pattern, c))
+      check(s.scanfComparator(c, s.low()) == 0)
 
     for s in [ "==3.0", "<=µ" ]:
       var c: Comparator
       check:
-        s.scanf(Pattern, c)
-        $c == $s.runeSubStr(s.low(), ComparatorNChars)
+        s.scanfComparator(c, s.low()) == ComparatorNChars
+        $c == s.runeSubStr(s.low(), ComparatorNChars)

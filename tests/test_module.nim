@@ -20,6 +20,12 @@ const
 
 
 suite "module":
+  test "hasNoVersion":
+    check:
+      SomeModules[2].hasNoVersion()
+      not SomeModules[0].hasNoVersion()
+
+
   test "$":
     for iter in SomeModules.pairs():
       check($iter.val == SomeStringModules[iter.key])

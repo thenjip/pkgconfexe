@@ -18,9 +18,14 @@ type Module* = tuple
 
 
 
+func hasNoVersion* (m: Module): bool {. locks: 0 .} =
+  result = m.version.len() == 0
+
+
+
 func `$`* (m: Module): string {. locks: 0 .} =
   result =
-    if m.version.len() == 0:
+    if m.hasNoVersion():
       m.pkg
     else:
       fmt"{m.pkg}{$m.cmp}{m.version}"

@@ -23,7 +23,7 @@ func buildCmdLine* (
   m: Module; env: openarray[EnvVarValue]; a: Action
 ): string {. locks: 0 .} =
   let cmd =
-    if m.version.len() == 0:
+    if m.hasNoVersion():
       fmt"""{CmdName} {$a} "{m.pkg}{'"'}"""
     else:
       fmt(

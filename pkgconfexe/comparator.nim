@@ -22,18 +22,8 @@ const
 
 
 
-func option* (c: Comparator): static[string] {. locks: 0 .} =
+func option* (c: Comparator): string {. locks: 0 .} =
   result = ComparatorOptions[c]
-
-
-func toComparator* (s: string): Comparator {.
-  locks: 0, raises: [ ValueError ]
-.} =
-  for c in Comparator:
-    if s == $c:
-      return c
-
-  raise newException(ValueError, fmt""""{s}" is not a supported operator.""")
 
 
 
@@ -43,6 +33,16 @@ func isComparator* (x: string): bool {. locks: 0 .} =
       return true
 
   result = false
+
+
+func toComparator* (x: string): Comparator {.
+  locks: 0, raises: [ ValueError ]
+.} =
+  for c in Comparator:
+    if x.toRunes() == ($c).toRunes():
+      return c
+
+  raise newException(ValueError, fmt""""{x}" is not a supported operator.""")
 
 
 
@@ -55,7 +55,7 @@ func scanfComparator* (input: string; c: var Comparator; start: int): int {.
     let subStr = input.runeSubStr(start, ComparatorNChars)
 
     if subStr.isComparator():
-      result += ComparatorNChars
+      result += subStr.len()
       c = subStr.toComparator()
 
 
