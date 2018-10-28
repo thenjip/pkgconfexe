@@ -3,7 +3,7 @@ const Tests = [
   "filename",
   "path",
   "package",
-  "operator",
+  "comparator",
   "version",
   "module",
   "env",

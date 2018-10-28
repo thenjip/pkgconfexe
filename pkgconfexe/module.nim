@@ -1,4 +1,4 @@
-import operator, package, version
+import comparator, package, version
 import private/utf8
 
 import pkg/unicodeplus
@@ -7,13 +7,13 @@ import std/[ strformat, strscans ]
 import std/unicode except isWhiteSpace
 
 
-export operator
+export comparator
 
 
 
 type Module* = tuple
   pkg: string
-  op: Operator
+  cmp: Comparator
   version: string
 
 
@@ -23,7 +23,7 @@ func `$`* (m: Module): string {. locks: 0 .} =
     if m.version.len() == 0:
       m.pkg
     else:
-      fmt"{m.pkg}{$m.op}{m.version}"
+      fmt"{m.pkg}{$m.cmp}{m.version}"
 
 
 
@@ -37,14 +37,14 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
 
   if pkgLen > 0:
     result += pkgLen + input.skipWhitespaces(start + pkgLen)
-    let opLen = input.scanfOperator(tmp.op, start + result)
+    let cmpLen = input.scanfComparator(tmp.cmp, start + result)
 
-    if opLen > 0:
-      result += opLen + input.skipWhitespaces(start + opLen)
+    if cmpLen > 0:
+      result += cmpLen + input.skipWhitespaces(start + cmpLen)
       let versionLen = input.scanfVersion(tmp.version, start + result)
 
       if versionLen == 0:
-        result -= opLen
+        result -= cmpLen
       else:
         result += versionLen
 

@@ -28,7 +28,7 @@ func buildCmdLine* (
     else:
       fmt(
         "{CmdName} {$a} " &
-          """{m.op.option()} "{m.version}" "{m.pkg}{'"'}"""
+          """{m.cmp.option()} "{m.version}" "{m.pkg}{'"'}"""
       )
 
   result =

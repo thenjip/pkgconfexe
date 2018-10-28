@@ -7,9 +7,9 @@ import std/[ strscans, unittest ]
 
 const
   SomeModules: array[3, Module] = [
-    (pkg: "a", op: Operator.Equal, version: "6"),
-    (pkg: "C#", op: Operator.GreaterEq, version: "2.0.5-4~ß"),
-    (pkg: "gtk+-3.0", op: Operator.LessEq, version: "")
+    (pkg: "a", cmp: Comparator.Equal, version: "6"),
+    (pkg: "C#", cmp: Comparator.GreaterEq, version: "2.0.5-4~ß"),
+    (pkg: "gtk+-3.0", cmp: Comparator.LessEq, version: "")
   ]
 
   SomeStringModules = [ "a==6", "C#>=2.0.5-4~ß", "gtk+-3.0" ]
