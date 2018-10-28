@@ -4,7 +4,7 @@ import std/macros
 
 
 
-func isArrayOf* [T](n: NimNode): bool {. locks: 0 .} =
+func isArrayOf* [T](n: NimNode): bool {. compileTime, locks: 0 .} =
   let baseTypeNode: NimNode = case n.typeKind():
     of ntyArray:
       n.getTypeImpl()[1]
@@ -16,7 +16,9 @@ func isArrayOf* [T](n: NimNode): bool {. locks: 0 .} =
   result = baseTypeNode == T.getTypeImpl()
 
 
-func getEnvFromBlock* (codeBlock: NimNode): NimNode {. locks: 0 .} =
+func getEnvFromBlock* (codeBlock: NimNode): NimNode {.
+  compileTime, locks: 0
+.} =
   result = nnkBracket.newNimNode()
 
   for n in codeBlock:
