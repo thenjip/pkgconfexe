@@ -9,7 +9,7 @@ func isPath* (x: string): bool {. locks: 0 .} =
   for f in x.split(DirSep.toRune()):
     case f:
       of $CurDir, $ParDir:
-        result = true
+        continue
       else:
         if not f.isFileName():
           return false

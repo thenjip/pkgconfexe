@@ -1,6 +1,6 @@
 import ../env
 
-import std/macros
+import std/[ macros, sequtils ]
 
 
 
@@ -19,8 +19,4 @@ func isArrayOf* [T](n: NimNode): bool {. compileTime, locks: 0 .} =
 func getEnvFromBlock* (codeBlock: NimNode): NimNode {.
   compileTime, locks: 0
 .} =
-  result = nnkBracket.newNimNode()
-
-  for n in codeBlock:
-    if n.isArrayOf[: EnvVarValue]():
-      n.copyChildrenTo(result)
+  result = nnkBracket.newTree(codeBlock.filterIt(it.isArrayOf[: EnvVarValue]()))

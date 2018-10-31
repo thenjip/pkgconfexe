@@ -1,6 +1,6 @@
 import private/utf8
 
-import std/[ strformat, unicode ]
+import std/[ sequtils, strformat, unicode ]
 
 
 
@@ -28,11 +28,8 @@ func option* (c: Comparator): string {. locks: 0 .} =
 
 
 func isComparator* (x: string): bool {. locks: 0 .} =
-  for c in Comparator:
-    if x.toRunes() == ($c).toRunes():
-      return true
+  result = toSeq(Comparator.items()).anyIt(x.toRunes() == ($it).toRunes())
 
-  result = false
 
 
 func toComparator* (x: string): Comparator {.
@@ -61,7 +58,8 @@ func scanfComparator* (input: string; c: var Comparator; start: int): int {.
 
 
 static:
-  for c in Comparator:
-    doAssert(($c).len() == ComparatorNChars)
-    doAssert(($c).isUtf8())
-    doAssert(c.option().isUtf8())
+  doAssert(toSeq(Comparator.items()).allIt(
+    ($it).len() == ComparatorNChars and
+    ($it).isUtf8() and
+    it.option().isUtf8()
+  ))

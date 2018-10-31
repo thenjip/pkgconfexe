@@ -1,7 +1,7 @@
 import utf8
 
-from std/ospaths import Curdir, DirSep, ParDir, PathSep
-import std/[ strutils, unicode ]
+from std/ospaths import AltSep, Curdir, DirSep, ParDir, PathSep
+import std/[ sequtils, strutils, unicode ]
 
 
 
@@ -10,7 +10,7 @@ when defined(windows):
     ForbiddenChars* = {
       '?', '*',
       ':', PathSep,
-      '/', '\\', '|', DirSep,
+      '/', '\\', '|', AltSep, DirSep,
       '\"',
       '<', '>',
       '\0'..'\x1f', '\x7f', '\x80'..'\x9f'
@@ -19,7 +19,9 @@ when defined(windows):
     ForbiddenLastChars* = { ' ', '.' } + ForbiddenChars
 else:
   const
-    ForbiddenChars* = { DirSep, PathSep, '\0'..'\x1f', '\x7f', '\x80'..'\x9f' }
+    ForbiddenChars* = {
+      AltSep, DirSep, PathSep, '\0'..'\x1f', '\x7f', '\x80'..'\x9f'
+    }
 
     ForbiddenLastChars* = ForbiddenChars
 
@@ -62,30 +64,21 @@ else:
 
 
 func isFileName* (x: string): bool {. locks: 0 .} =
-  if x.len() == 0:
-    return false
+  result =
+    x.len() > 0 and
+    x.runeAt(x.low()) != ShortOptionPrefix and
+    (func (x: string): bool =
+      let (lastRune, lastRuneLen) = x.lastRune(x.high())
 
-  let skipIndex = x.skipWhiteSpaces(x.low())
-
-  if x.runeAt(skipIndex) == ShortOptionPrefix:
-    return false
-
-  let (lastRune, lastRuneLen) = x.lastRune(x.high())
-  if lastRune in ForbiddenLastChars:
-    return false
-
-  for r in x[skipIndex..x.high() - lastRuneLen].runes():
-    if r in ForbiddenChars:
-      return false
-
-  for rn in ReservedName:
-    if x == $rn:
-      return false
-
-  result = true
+      result =
+        lastRune notin ForbiddenLastChars and
+        x[x.low()..x.high() - lastRuneLen].toRunes().allIt(
+          it notin ForbiddenChars
+        )
+    )(x) and
+    toSeq(ReservedName.items()).allIt($it != x)
 
 
 
 static:
-  for rn in ReservedName:
-    doAssert(($rn).isUtf8())
+  doAssert(toSeq(ReservedName.items()).allIt(($it).isUtf8()))

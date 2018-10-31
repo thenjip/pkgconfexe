@@ -1,5 +1,6 @@
 const Tests = [
   "utf8",
+  "identifier",
   "filename",
   "path",
   "package",

@@ -23,22 +23,21 @@ macro withEnv* (env: varargs[static[EnvVarValue]]): NimNode =
 
 
 
-macro addCFlags* (modules: static[openarray[static[string]]]): untyped =
-
+macro addCFlags* (modules: openarray[static[string]]): untyped =
   result = nnkExprColonExpr.newTree(
     "passC".bindSym(),
     "getCFlags".bindSym().newCall(modules.toModules(), withEnv())
   )
 
 
-macro addLdFlags* (modules: static[openarray[static[string]]]): untyped =
+macro addLdFlags* (modules: openarray[static[string]]): untyped =
   result = nnkExprColonExpr.newTree(
     "passL".bindSym(),
     "getLdFlags".bindSym().newCall(modules.toModules(), withEnv())
   )
 
 
-macro checkModules* (modules: static[openarray[static[string]]]): untyped =
+macro checkModules* (modules: openarray[static[string]]): untyped =
   result = nnkPragmaExpr.newTree(
     addCFlags(modules, body),
     addLdFlags(modules, body)

@@ -3,29 +3,23 @@ import private/utf8
 
 import pkg/unicodedb
 
-import std/[ strscans, unicode ]
+import std/[ sequtils, strscans, unicode ]
 
 
 
 const
-  AllowedCharOthers = package.AllowedCharOthers + { '*', ':' }
+  AllowedCharOthers = { '+', '-', '_', '$', '.', '#', '@', '~', '*', ':' }
 
-  AllowedCategories* = package.AllowedCategories
+  AllowedCategories* = ctgL + ctgN
 
 
 
 func isVersion* (x: string): bool {. locks: 0 .} =
-  if x.len() == 0:
-    return false
-
-  for r in x.runes():
-    if
-      r notin AllowedCharOthers and
-      r.unicodeCategory() notin AllowedCategories
-    :
-      return false
-
-  result = true
+  result =
+    x.len() > 0 and
+    x.toRunes().allIt(
+      it in AllowedCharOthers or it.unicodeCategory() in AllowedCategories
+    )
 
 
 

@@ -2,7 +2,7 @@ import private/utf8
 
 import pkg/unicodedb
 
-import std/unicode
+import std/[ sequtils, unicode ]
 
 
 
@@ -14,17 +14,11 @@ const
 
 
 func isPackage* (x: string): bool {. locks: 0 .} =
-  if x.len() == 0:
-    return false
-
-  for r in x.runes():
-    if
-      r notin AllowedCharOthers and
-      r.unicodeCategory() notin AllowedCategories
-    :
-      return false
-
-  result = true
+  result =
+    x.len() > 0 and
+    x.toRunes().allIt(
+      it in AllowedCharOthers or it.unicodeCategory() in AllowedCategories
+    )
 
 
 

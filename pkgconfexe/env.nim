@@ -1,7 +1,7 @@
 import private/[ filename, identifier, path, utf8 ]
 
 from std/ospaths import PathSep
-import std/[ strformat, strutils, unicode ]
+import std/[ sequtils, strformat, strutils, unicode ]
 
 
 
@@ -22,43 +22,32 @@ func `$`* (e: EnvVarValue): string {. locks: 0 .} =
 
 
 
-func validateEnvVarValue* (e: EnvVarValue):  bool {. locks: 0 .} =
-  case e.envVar:
+func validateEnvVarValue* (e: EnvVarValue): bool {. locks: 0 .} =
+  result = case e.envVar:
     of PkgConfigLibdir, PkgConfigPath:
-      for p in e.val.split(PathSep.toRune()):
-        if not p.isPath():
-          return false
+      e.val.split(PathSep.toRune()).allIt(it.isPath())
     of PkgConfigSysrootDir:
-      if not e.val.isPath():
-        return false
-
-  result = true
+      e.val.isPath()
 
 
 
 func buildEnv* (env: openarray[EnvVarValue]): string {.
   locks: 0, raises: [ ValueError ]
 .} =
-  var
-    envVars: set[EnvVar]
-    results = newSeqOfCap[string](env.len())
+  result = env.mapIt((func (e: EnvVarValue): string =
+    var envVars: set[EnvVar]
 
-  for e in env:
     if e.envVar in envVars:
       raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
-
-    if not e.validateEnvVarValue():
+    elif not e.validateEnvVarValue():
       raise newException(
         ValueError, fmt"""Invalid value for "{$e.envVar}": {e.val}"""
       )
-
-    results.add($e)
-    envVars.incl(e.envVar)
-
-  result = results.join($' ')
+    else:
+      $e
+  )(it)).join($' ')
 
 
 
 static:
-  for e in EnvVar:
-    doAssert(($e).isIdentifier())
+  doAssert(toSeq(EnvVar.items()).allIt(($it).isIdentifier()))

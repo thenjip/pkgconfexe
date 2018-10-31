@@ -1,7 +1,7 @@
 import env, module
 import private/filename
 
-import std/[ ospaths, strformat, strutils ]
+import std/[ ospaths, sequtils, strformat, strutils ]
 
 
 export env, module
@@ -21,7 +21,7 @@ type
 
 func buildCmdLine* (
   m: Module; env: openarray[EnvVarValue]; a: Action
-): string {. locks: 0 .} =
+): string {. locks: 0, raises: [ ValueError ] .} =
   let cmd =
     if m.hasNoVersion():
       fmt"""{CmdName} {$a} "{m.pkg}{'"'}"""
@@ -40,25 +40,22 @@ func buildCmdLine* (
 
 
 func execCmds (
-  modules: openarray[Module]; env: openarray[EnvVarValue]; a: Action
-): string {. compileTime, locks: 0 .} =
-  var results = newSeqofCap[string](modules.len())
-
-  for m in modules:
-    results.add(staticExec(m.buildCmdLine(env, a)))
-
-  result = results.join($' ')
+  modules: openarray[static[Module]];
+  env: openarray[static[EnvVarValue]];
+  a: static[Action]
+): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
+  result = modules.mapIt(staticExec(it.buildCmdLine(env, a))).join($' ')
 
 
 func getCFlags* (
-  modules: openarray[Module]; env: openarray[EnvVarValue]
-): string {. compileTime, locks: 0 .} =
+  modules: openarray[static[Module]]; env: openarray[static[EnvVarValue]]
+): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
   result = modules.execCmds(env, Action.CFlags)
 
 
 func getLdFlags* (
-  modules: openarray[Module]; env: openarray[EnvVarValue]
-): string {. compileTime, locks: 0 .} =
+  modules: openarray[static[Module]]; env: openarray[static[EnvVarValue]]
+): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
   result = modules.execCmds(env, Action.LdFlags)
 
 

@@ -3,8 +3,8 @@ import private/utf8
 
 import pkg/unicodeplus
 
-import std/[ strformat, strscans ]
-import std/unicode except isWhiteSpace
+import std/[ sequtils, strformat, strscans ]
+import std/unicode
 
 
 export comparator
@@ -67,7 +67,10 @@ func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
 func toModules* (mods: openarray[string]): seq[Module] {.
   locks: 0, raises: [ ValueError ]
 .} =
+  result = mods.mapIt(toModule(it))
+#[
   result = newSeqOfCap[Module](mods.len())
 
   for m in mods:
     result.add(m.toModule())
+]#
