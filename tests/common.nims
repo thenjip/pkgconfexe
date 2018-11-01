@@ -1,4 +1,5 @@
 const Tests = [
+  "fphelper",
   "utf8",
   "identifier",
   "filename",
