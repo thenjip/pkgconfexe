@@ -1,4 +1,4 @@
-import pkg/unicodeplus
+import pkg/[ unicodeplus, zero_functional ]
 
 import std/unicode except isWhiteSpace
 
@@ -48,9 +48,11 @@ func isUtf8* (x: string{~lit}): bool {. locks: 0 .} =
 
 
 func skipWhiteSpaces* (input: string; start: int): int {. locks: 0 .} =
-  result = 0
+  let idx = input[start..input.high()].toRunes()-->index(not it.isWhiteSpace())
 
-  for r in input[start..input.high()].runes():
-    if not r.isWhiteSpace():
-      break
-    result.inc()
+  result =
+    if idx < 0:
+      input.high() - start + 1
+    else:
+      idx + 1
+

@@ -1,17 +1,17 @@
 import filename, utf8
 
+import pkg/zero_functional
+
 from std/ospaths import CurDir, DirSep, ParDir
 import std/unicode
 
 
 
 func isPath* (x: string): bool {. locks: 0 .} =
-  for f in x.split(DirSep.toRune()):
-    case f:
+  result = x.split(DirSep.toRune())-->all(
+    case it:
       of $CurDir, $ParDir:
-        continue
+        true
       else:
-        if not f.isFileName():
-          return false
-
-  result = true
+        it.isFileName()
+  )

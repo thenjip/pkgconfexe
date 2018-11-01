@@ -1,9 +1,9 @@
 import comparator, package, version
-import private/utf8
+import private/[ fphelper, utf8 ]
 
-import pkg/unicodeplus
+import pkg/[ unicodeplus, zero_functional ]
 
-import std/[ sequtils, strformat, strscans ]
+import std/[ strformat, strscans ]
 import std/unicode
 
 
@@ -67,7 +67,7 @@ func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
 func toModules* (mods: openarray[string]): seq[Module] {.
   locks: 0, raises: [ ValueError ]
 .} =
-  result = mods.mapIt(toModule(it))
+  result = mods-->map(it.toModule())
 #[
   result = newSeqOfCap[Module](mods.len())
 

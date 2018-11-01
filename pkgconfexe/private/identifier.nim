@@ -1,8 +1,7 @@
-import utf8
+import fphelper, utf8
 
-import pkg/[ unicodedb, unicodeplus ]
+import pkg/[ unicodedb, unicodeplus, zero_functional ]
 
-import std/sequtils
 import std/unicode except isAlpha
 
 
@@ -13,18 +12,18 @@ const
 
 
 
-func isIdentifier* (x: string): bool {. locks: 0 .} =
-  result =
-    x.len() > 0 and
-    (func (x: string): bool =
-      let
-        firstRune = x.runeAt(x.low())
-        firstRuneLen = x.runeLenAt(x.low())
+func checkRunes (x: string): bool {. locks: 0 .} =
+  let
+    firstRune = x.runeAt(x.low())
+    firstRuneLen = x.runeLenAt(x.low())
 
-      result =
-        (firstRune in AllowedCharOthers or firstRune.isAlpha()) and
-        x[x.low() + firstRuneLen..x.high()].toRunes().allIt(
-          it.unicodeCategory() in AllowedOtherCharCategories or
-          it in AllowedCharOthers
-        )
-    )(x)
+  result =
+    (firstRune in AllowedCharOthers or firstRune.isAlpha()) and
+    x[x.low() + firstRuneLen..x.high()].toRunes().callZFunc(all(
+      it.unicodeCategory() in AllowedOtherCharCategories or
+      it in AllowedCharOthers
+    ))
+
+
+func isIdentifier* (x: string): bool {. locks: 0 .} =
+  result = x.len() > 0 and checkRunes(x)

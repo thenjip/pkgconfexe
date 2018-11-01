@@ -1,7 +1,7 @@
 import env, module
-import private/filename
+import private/[ filename, fphelper, utf8 ]
 
-import std/[ ospaths, sequtils, strformat, strutils ]
+import std/[ ospaths, strformat, strutils ]
 
 
 export env, module
@@ -44,7 +44,9 @@ func execCmds (
   env: openarray[static[EnvVarValue]];
   a: static[Action]
 ): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
-  result = modules.mapIt(staticExec(it.buildCmdLine(env, a))).join($' ')
+  result = modules.callZFunc(map(
+    staticExec(it.buildCmdLine(env, a))
+  )).join($' ')
 
 
 func getCFlags* (
@@ -62,3 +64,4 @@ func getLdFlags* (
 
 static:
   doAssert(CmdName.isFileName())
+  doAssert(Action.seqOfAll()-->all(($it).isUtf8())

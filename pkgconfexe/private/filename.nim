@@ -1,7 +1,9 @@
-import utf8
+import fphelper, utf8
+
+import pkg/zero_functional
 
 from std/ospaths import AltSep, Curdir, DirSep, ParDir, PathSep
-import std/[ sequtils, strutils, unicode ]
+import std/[ strutils, unicode ]
 
 
 
@@ -63,22 +65,24 @@ else:
 
 
 
+func checkRunes (x: string): bool {. locks: 0 .} =
+  let (lastRune, lastRuneLen) = x.lastRune(x.high())
+
+  result =
+    lastRune notin ForbiddenLastChars and
+    x[x.low()..x.high() - lastRuneLen].toRunes().callZFunc(all(
+      it notin ForbiddenChars
+    ))
+
+
 func isFileName* (x: string): bool {. locks: 0 .} =
   result =
     x.len() > 0 and
     x.runeAt(x.low()) != ShortOptionPrefix and
-    (func (x: string): bool =
-      let (lastRune, lastRuneLen) = x.lastRune(x.high())
-
-      result =
-        lastRune notin ForbiddenLastChars and
-        x[x.low()..x.high() - lastRuneLen].toRunes().allIt(
-          it notin ForbiddenChars
-        )
-    )(x) and
-    toSeq(ReservedName.items()).allIt($it != x)
+    checkRunes(x) and
+    ReservedName.seqOfAll().callZFunc(all($it != x))
 
 
 
 static:
-  doAssert(toSeq(ReservedName.items()).allIt(($it).isUtf8()))
+  doAssert(ReservedName.seqOfAll()-->all(($it).isUtf8()))

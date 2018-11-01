@@ -1,6 +1,8 @@
-import private/utf8
+import private/[ fphelper, utf8 ]
 
-import std/[ sequtils, strformat, unicode ]
+import pkg/zero_functional
+
+import std/[ strformat, unicode ]
 
 
 
@@ -22,24 +24,31 @@ const
 
 
 
+
+
 func option* (c: Comparator): string {. locks: 0 .} =
   result = ComparatorOptions[c]
 
 
 
 func isComparator* (x: string): bool {. locks: 0 .} =
-  result = toSeq(Comparator.items()).anyIt(x.toRunes() == ($it).toRunes())
+  result = Comparator.seqOfAll()-->exists(($it).toRunes() == x.toRunes())
 
 
 
 func toComparator* (x: string): Comparator {.
   locks: 0, raises: [ ValueError ]
 .} =
-  for c in Comparator:
-    if x.toRunes() == ($c).toRunes():
-      return c
+  const allCmp = Comparator.seqOfAll()
+  let idx = allCmp-->index(($it).toRunes() == x.toRunes())
 
-  raise newException(ValueError, fmt""""{x}" is not a supported operator.""")
+  result =
+    if idx < 0:
+      raise newException(
+        ValueError, fmt""""{x}" is not a supported comparator."""
+      )
+    else:
+      allCmp[idx]
 
 
 
@@ -58,7 +67,7 @@ func scanfComparator* (input: string; c: var Comparator; start: int): int {.
 
 
 static:
-  doAssert(toSeq(Comparator.items()).allIt(
+  doAssert(Comparator.seqOfAll()-->all(
     ($it).len() == ComparatorNChars and
     ($it).isUtf8() and
     it.option().isUtf8()

@@ -1,8 +1,8 @@
-import private/utf8
+import private/[ fphelper, utf8 ]
 
-import pkg/unicodedb
+import pkg/[ unicodedb, zero_functional ]
 
-import std/[ sequtils, unicode ]
+import std/[ unicode ]
 
 
 
@@ -16,23 +16,16 @@ const
 func isPackage* (x: string): bool {. locks: 0 .} =
   result =
     x.len() > 0 and
-    x.toRunes().allIt(
+    x.toRunes().callZFunc(all(
       it in AllowedCharOthers or it.unicodeCategory() in AllowedCategories
-    )
+    ))
 
 
 
 func scanfPackage* (input: string; pkg: var string; start: int): int {.
   locks: 0
 .} =
-  result = 0
-
-  for r in input[start..input.high()].runes():
-    if
-      r notin AllowedCharOthers and
-      r.unicodeCategory() notin AllowedCategories
-    :
-      break
-
-    result.inc()
-    pkg.add($r)
+  pkg = $input[start..input.high()].toRunes().callZFunc(takeWhile(
+    it in AllowedCharOthers or it.unicodeCategory() in AllowedCategories
+  ))
+  result = pkg.len()
