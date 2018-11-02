@@ -50,6 +50,5 @@ suite "cmd":
 
 
   test "getLdFlags":
-    check(
+    check:
       LdFlags == "-ldeps"
-    )

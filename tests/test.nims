@@ -1,3 +1,5 @@
+import pkg/zero_functional
+
 import std/strformat
 
 
@@ -5,5 +7,9 @@ include "common.nims"
 
 
 
-for t in Tests:
-  exec(fmt"""{"nim".toExe()} c -r 'test_{t}.nim'""")
+proc doExec (test: string) =
+  selfExec(fmt"""c -r 'test_{test}.nim'""")
+
+
+
+Tests-->foreach(doExec(it))

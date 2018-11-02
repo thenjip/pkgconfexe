@@ -1,5 +1,7 @@
 import pkgconfexe/private/utf8
 
+import pkg/zero_functional
+
 import std/[ strscans, unicode, unittest ]
 
 
@@ -20,19 +22,21 @@ suite "utf8":
   test "RuneInCharSet":
     const SomeCharSet = { 'a'..'z' }
 
-    for c in SomeCharSet:
-      let c_str = $c
-      check(c_str.runeAt(c_str.low()) in SomeCharSet)
+    check:
+      SomeCharSet-->all(($it).runeAt(0) in SomeCharSet)
 
     const NotInStr = "è"
-    check(NotInStr.runeAt(NotInStr.low()) notin SomeCharSet)
+    check:
+      NotInStr.runeAt(NotInStr.low()) notin SomeCharSet
 
 
   test "isUtf8":
     const SomeStr = "æþ“¢ß@µŋøŧħ←đ»ŋħß“#{`|'àdop*µ §^ïŁªÐΩ§ºŁª¢§Ω§ÐÐŦ¥↑ØÞ®©‘’"
-    check(SomeStr.isUtf8())
+    check:
+      SomeStr.isUtf8()
 
 
   test "skipWhiteSpaces":
     const Input = " \n\t "
-    check(Input.skipWhiteSpaces(Input.low()) == Input.len())
+    check:
+      Input.skipWhiteSpaces(Input.low()) == Input.len()

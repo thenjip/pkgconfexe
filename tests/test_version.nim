@@ -1,12 +1,16 @@
 import pkgconfexe/version
 
+import pkg/zero_functional
+
 import std/[ strscans, unittest ]
 
 
 
 suite "version":
   test "isVersion":
-    check(not "".isVersion())
+    check:
+      not "".isVersion()
+      not "o 6".isVersion()
 
     const SomeValidVersions = [
       "1.1983.0567",
@@ -16,11 +20,8 @@ suite "version":
       "1.0-4~ppa+xenial28",
       "3.0+git2018.12.25-00.00.00"
     ]
-
-    for v in SomeValidVersions:
-      check(v.isVersion())
-
-    check(not "o 6".isVersion())
+    check:
+      SomeValidVersions-->all(it.isVersion())
 
 
   test "scanfVersion":

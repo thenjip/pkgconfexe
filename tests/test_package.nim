@@ -1,6 +1,8 @@
 import pkgconfexe/package
 
-import std/[ os, strformat, strscans, unittest ]
+import pkg/zero_functional
+
+import std/[ os, sequtils, strformat, strscans, unittest ]
 
 
 include "data.nims"
@@ -9,14 +11,16 @@ include "data.nims"
 
 suite "package":
   test "isPackage":
-    check(not "".isPackage())
+    check:
+      not "".isPackage()
 
     const
       Pattern = "${scanfPackage}"
       SomePkgNames = [ "gtk+", ".NET", "ØMQ" ]
 
     for p in SomePkgNames:
-      check(p.isPackage())
+      check:
+        p.isPackage()
 
       let noisyPkg = fmt"{p},d^¨"
       var match = ""
@@ -24,5 +28,7 @@ suite "package":
         noisyPkg.scanf(Pattern, match)
         match == p
 
-    for p in walkFiles(fmt"{DataDir}/*.pc"):
-      check(p.splitFile().name.isPackage())
+    check:
+      (toSeq(walkFiles(fmt"{DataDir}/*.pc")))-->all(
+        it.splitFile().name.isPackage()
+      )

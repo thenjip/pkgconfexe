@@ -1,6 +1,9 @@
 import pkgconfexe/comparator
+import pkgconfexe/private/fphelper
 
-import std/[ sequtils, unicode, unittest ]
+import pkg/zero_functional
+
+import std/[ unicode, unittest ]
 
 
 
@@ -11,13 +14,13 @@ const SomeInvalidComparators = [ "=", "&", "+", "-", "^", "" ]
 suite "comparator":
   test "isComparator":
     check:
-      toSeq(Comparator.items()).allIt(($it).isComparator())
-      SomeInvalidComparators.allIt(not it.isComparator())
+      Comparator.seqOfAll()-->all(($it).isComparator())
+      SomeInvalidComparators-->all(not it.isComparator())
 
 
   test "option":
     check:
-      toSeq(Comparator.items()).allIt(it.option() == ComparatorOptions[it])
+      Comparator.seqOfAll()-->all(it.option() == ComparatorOptions[it])
 
 
   test "comparator":

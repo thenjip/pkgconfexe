@@ -1,5 +1,7 @@
 import pkgconfexe/private/identifier
 
+import pkg/zero_functional
+
 import std/[ sequtils, unittest ]
 
 
@@ -7,5 +9,5 @@ import std/[ sequtils, unittest ]
 suite "identifier":
   test "isIdentifier":
     check:
-      [ "_", "_é", "ù1", "_1", "a3ë", "CC" ].allIt(it.isIdentifier())
-      [ "1a", "-v", "ŋ-a" ].allIt(not it.isIdentifier())
+      [ "_", "_é", "ù1", "_1", "a3ë", "CC" ]-->all(it.isIdentifier())
+      [ "1a", "-v", "ŋ-a" ]-->all(not it.isIdentifier())

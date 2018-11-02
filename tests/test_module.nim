@@ -28,7 +28,8 @@ suite "module":
 
   test "$":
     for iter in SomeModules.pairs():
-      check($iter.val == SomeStringModules[iter.key])
+      check:
+        $iter.val == SomeStringModules[iter.key]
 
 
   test "scanfModule":
@@ -41,7 +42,8 @@ suite "module":
 
   test "toModule":
     for iter in Inputs.pairs():
-      check(iter.val.toModule() == SomeModules[iter.key])
+      check:
+        iter.val.toModule() == SomeModules[iter.key]
 
     expect ValueError:
       discard "".toModule()
