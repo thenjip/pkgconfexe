@@ -1,10 +1,9 @@
 import comparator, package, version
 import private/[ fphelper, utf8 ]
 
-import pkg/[ unicodeplus, zero_functional ]
+import pkg/zero_functional
 
-import std/[ strformat, strscans ]
-import std/unicode
+import std/[ strformat, strscans, unicode ]
 
 
 export comparator
@@ -52,8 +51,9 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
         result -= cmpLen
       else:
         result += versionLen
-
-  m = tmp
+        m = tmp
+    else:
+      m = tmp
 
 
 
@@ -68,9 +68,3 @@ func toModules* (mods: openarray[string]): seq[Module] {.
   locks: 0, raises: [ ValueError ]
 .} =
   result = mods-->map(it.toModule())
-#[
-  result = newSeqOfCap[Module](mods.len())
-
-  for m in mods:
-    result.add(m.toModule())
-]#

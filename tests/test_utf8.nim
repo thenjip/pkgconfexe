@@ -37,6 +37,10 @@ suite "utf8":
 
 
   test "skipWhiteSpaces":
-    const Input = " \n\t "
+    const
+      Input = " \n\t "
+      NoWSInput = "abc"
+
     check:
       Input.skipWhiteSpaces(Input.low()) == Input.len()
+      NoWSInput.skipWhiteSpaces(NoWSInput.low()) == 0

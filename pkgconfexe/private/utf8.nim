@@ -48,11 +48,13 @@ func isUtf8* (x: string{~lit}): bool {. locks: 0 .} =
 
 
 func skipWhiteSpaces* (input: string; start: int): int {. locks: 0 .} =
-  let idx = input[start..input.high()].toRunes()-->index(not it.isWhiteSpace())
+  let
+    slicedIn = input[start..input.high()]
+    idx = slicedIn.toRunes()-->index(not it.isWhiteSpace())
 
   result =
-    if idx < 0:
-      input.high() - start + 1
+    if idx >= 0:
+      idx
     else:
-      idx + 1
+      slicedIn.len()
 
