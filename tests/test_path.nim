@@ -7,4 +7,5 @@ import std/[ ospaths, unittest ]
 suite "path":
   test "isPath":
     check:
-      unixToNativePath("$PWD/../.").isPath()
+      "$PWD/../.".unixToNativePath().isPath()
+      not "\0/abc".unixToNativePath().isPath()

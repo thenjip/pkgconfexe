@@ -9,7 +9,7 @@ import std/unicode
 
 func isPath* (x: string): bool {. locks: 0 .} =
   result = x.split(DirSep.toRune())-->all(
-    case it:
+    case it
       of $CurDir, $ParDir:
         true
       else:

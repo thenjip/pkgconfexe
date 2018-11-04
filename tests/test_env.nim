@@ -1,7 +1,9 @@
 import pkgconfexe/env
 
+import pkg/zero_functional
+
 from std/ospaths import CurDir, DirSep, PathSep
-import std/[ strformat, strutils, unittest ]
+import std/[ ospaths, strformat, strutils, unittest ]
 
 
 
@@ -9,20 +11,53 @@ include "data.nims"
 
 
 
+const
+  SomeConfigPath = (
+    envVar: EnvVar.PkgConfigPath,
+    val: [ DataDir, fmt"./{DataDir}".unixToNativePath() ].join($PathSep)
+  )
+  SomeSysrootDir = (envVar: EnvVar.PkgConfigSysrootDir, val: DataDir)
+
+  SomeConfigPathString =
+    fmt"""{$SomeConfigPath.envVar}="{SomeConfigPath.val}{'"'}"""
+  SomeSysrootDirString =
+    fmt"""{$SomeSysrootDir.envVar}="{SomeSysrootDir.val}{'"'}"""
+
+  InvalidFileName = &"{DataDir}\0a"
+
+  SomeInvalidLibdir = (envVar: EnvVar.PkgConfigLibdir, val: InvalidFileName)
+
+
+
 suite "env":
-  test "buildEnv":
-    const
-      SomeEnvVarValue: EnvVarValue = (
-        envVar: EnvVar.PkgConfigPath,
-        val: [ DataDir, fmt"{CurDir}{DirSep}{DataDir}" ].join($PathSep)
-      )
-      InvalidFileName = DataDir & '\0' & 'a'
-
+  test "$":
     check:
-      buildEnv([ SomeEnvVarValue ]) ==
-        fmt"""{$SomeEnvVarValue.envVar}="{SomeEnvVarValue.val}{'"'}"""
+      $SomeConfigPath == SomeConfigPathString
+      $SomeSysrootDir == SomeSysrootDirString
+
+
+  test "validateEnvVarValue":
+    check:
+      [ SomeConfigPath, SomeSysrootDir ]-->all(it.validateEnvVarValue())
+      [ SomeInvalidLibdir ]-->all(not it.validateEnvVarValue())
+
+
+  test "toString":
+    check:
+      SomeConfigPath.toString() == SomeConfigPathString
+      SomeSysrootDir.toString() == SomeSysrootDirString
 
     expect ValueError:
-      discard buildEnv([ SomeEnvVarValue, SomeEnvVarValue ])
+      let tmp = SomeInvalidLibdir.toString()
+
+
+  test "buildEnv":
+    check:
+      @[ SomeConfigPath ].buildEnv() == SomeConfigPathString
+      @[ SomeConfigPath, SomeSysrootDir].buildEnv() ==
+        [ SomeConfigPathString, SomeSysrootDirString ].join($' ')
+
     expect ValueError:
-      discard buildEnv([(envVar: EnvVar.PkgConfigLibdir, val: InvalidFileName)])
+      let tmp = @[ SomeConfigPath, SomeConfigPath ].buildEnv()
+    expect ValueError:
+      let tmp = @[ SomeInvalidLibdir ].buildEnv()

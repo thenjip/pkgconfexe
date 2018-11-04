@@ -25,10 +25,10 @@ func `$`* (e: EnvVarValue): string {. locks: 0 .} =
 
 
 func validateEnvVarValue* (e: EnvVarValue): bool {. locks: 0 .} =
-  result = case e.envVar:
-    of PkgConfigLibdir, PkgConfigPath:
+  result = case e.envVar
+    of EnvVar.PkgConfigLibdir, EnvVar.PkgConfigPath:
       e.val.split(PathSep.toRune())-->all(it.isPath())
-    of PkgConfigSysrootDir:
+    of EnvVar.PkgConfigSysrootDir:
       e.val.isPath()
 
 
@@ -44,22 +44,25 @@ func toString* (e: EnvVarValue): string {. locks: 0, raises: [ ValueError ] .} =
 
 
 
-func buildEnv* (env: openarray[EnvVarValue]): string {.
+func buildEnv* (env: seq[EnvVarValue]): string {.
   locks: 0, raises: [ ValueError ]
 .} =
   var envVars: set[EnvVar]
 
-  result = env.callZFunc(map((
-    func (e: EnvVarValue): string =
+  result = env.callZFunc(map(
+    (func (e: EnvVarValue): string =
       result =
         if e.envVar in envVars:
           raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
         else:
           e.toString()
       envVars.incl(e.envVar)
-  )(it))).join($' ')
+    )(it)
+  )).join($' ')
 
 
 
+#[
 static:
   doAssert(EnvVar.seqOfAll()-->all(($it).isIdentifier()))
+]#

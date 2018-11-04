@@ -4,13 +4,18 @@ from std/sequtils import toSeq
 
 
 
+template seqOfAll* [T](a: Iterable[T]; iter: untyped): seq[T] =
+  toSeq(a.iter())
+
+
 func seqOfAll* (E: typedesc[enum]): seq[E] {. locks: 0 .} =
-  result = toSeq(E.items())
+  result = E.seqOfAll(items)
+
 
 
 #[
-A helper to avoid putting brackets
-around a boolean expression with the `-->` operator in it.
+  A helper to avoid putting brackets around a sub-expression (of a bigger one)
+  using a zero_functional function.
 ]#
-template callZFunc* [T](a: openarray[T]; zfExpr: untyped): untyped =
+template callZFunc* [T](a: Iterable[T]; zfExpr: untyped): untyped =
   a-->zfExpr
