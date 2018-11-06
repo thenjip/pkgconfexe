@@ -8,45 +8,35 @@ include "data.nims"
 
 
 const
-  SomeEnvVarValues: array[0, EnvVarValue] = [
-    (
-      envVar: EnvVar.PkgConfigPath,
-      val: unixToNativePath(fmt"{DataDir}")
-    )
-  ]
+  DepsModule = DepsPkg.toModule()
+  DummyModule = DummyPkg.toModule()
 
-  CFlags1 = getCFlags(
-    [ DummyPkg.toModule(), DepsPkg.toModule()],
-    SomeEnvVarValues
-  )
-  CFlags2 = getCFlags([ toModule(fmt"{DummyPkg} >= 0.0") ], SomeEnvVarValues)
+  SomeEnvVarValues = @[ (envVar: EnvVar.PkgConfigPath, val: DataDir) ]
 
-  LdFlags = getLdFlags([ DepsPkg.toModule() ], SomeEnvVarValues)
+  CFlags1 = getCFlags(@[ DummyModule, DepsModule], SomeEnvVarValues)
+  CFlags2 = getCFlags(@[ fmt"{DummyPkg} >= 0.0".toModule() ], SomeEnvVarValues)
+
+  LdFlags = getLdFlags(@[ DepsModule ], SomeEnvVarValues)
 
 
 
 suite "cmd":
   test "buildCmdLine":
-    const DepsModule = DepsPkg.toModule()
-
     check:
-      buildCmdLine(DummyPkg.toModule(), [], Action.CFlags) ==
+      buildCmdLine(DummyModule, @[], Action.CFlags) ==
         fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
-      buildCmdLine(
-        [ m: DepsPkg.toModule() ],
-        SomeEnvVarValues,
-        Action.LdFlags
-      ) == fmt(
-        "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags} " &
-          """{DepsModule.op.option()} "{DepsModule.version}{'"'}""" &
-          """{DepsModule.pkg}{'"'}"""
-      )
+      buildCmdLine(DepsModule, SomeEnvVarValues, Action.LdFlags) ==
+        fmt(
+          "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags} " &
+            """{DepsModule.op.option()} "{DepsModule.version}{'"'}""" &
+            """{DepsModule.pkg}{'"'}"""
+        )
 
 
   test "getCFlags":
     check:
-      Cflags1 == "-Idummy -Ideps"
-      Cflags2 == "-Idummy -Ideps"
+      CFlags1 == "-Idummy -Ideps"
+      CFlags2 == "-Idummy -Ideps"
 
 
   test "getLdFlags":

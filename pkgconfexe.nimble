@@ -13,11 +13,6 @@ skipDirs = @[ "tests" ]
 
 
 
-task test, "Run the test suite":
-  withDir "tests":
-    exec "nim".toExe & " e test.nims"
-
-
 task clean_test, "Clean the test suite":
   withDir "tests":
     exec "nim".toExe & " e clean.nims"

@@ -1,6 +1,8 @@
 import env, module
 import private/[ filename, fphelper, utf8 ]
 
+import pkg/zero_functional
+
 import std/[ ospaths, strformat, strutils ]
 
 
@@ -12,16 +14,15 @@ const CmdName* = "pkgconf".addFileExt(ExeExt)
 
 
 
-type
-  Action* {. pure .} = enum
-    CFlags = "--cflags"
-    LdFlags = "--ldflags"
+type Action* {. pure .} = enum
+  CFlags = "--cflags"
+  LdFlags = "--ldflags"
 
 
 
-func buildCmdLine* (
-  m: Module; env: openarray[EnvVarValue]; a: Action
-): string {. locks: 0, raises: [ ValueError ] .} =
+func buildCmdLine* (m: Module; env: seq[EnvVarValue]; a: Action): string {.
+  locks: 0, raises: [ ValueError ]
+.} =
   let cmd =
     if m.hasNoVersion():
       fmt"""{CmdName} {$a} "{m.pkg}{'"'}"""
@@ -40,28 +41,28 @@ func buildCmdLine* (
 
 
 func execCmds (
-  modules: openarray[static[Module]];
-  env: openarray[static[EnvVarValue]];
-  a: static[Action]
-): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
-  result = modules.callZFunc(map(
-    staticExec(it.buildCmdLine(env, a))
-  )).join($' ')
+  modules: seq[static[Module]]; env: seq[static[EnvVarValue]]; a: static[Action]
+): static[string] {. locks: 0, compileTime, raises: [ ValueError ] .} =
+  result = modules.callZFunc(map(staticExec(it.buildCmdLine(env, a)))).join(
+    $' '
+  )
 
 
 func getCFlags* (
-  modules: openarray[static[Module]]; env: openarray[static[EnvVarValue]]
-): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
+  modules: seq[static[Module]]; env: seq[static[EnvVarValue]]
+): static[string] {. locks: 0, compileTime, raises: [ ValueError ] .} =
   result = modules.execCmds(env, Action.CFlags)
 
 
 func getLdFlags* (
-  modules: openarray[static[Module]]; env: openarray[static[EnvVarValue]]
-): string {. compileTime, locks: 0, raises: [ ValueError ] .} =
+  modules: seq[static[Module]]; env: seq[static[EnvVarValue]]
+): static[string] {. locks: 0, compileTime, raises: [ ValueError ] .} =
   result = modules.execCmds(env, Action.LdFlags)
 
 
 
+#[
 static:
   doAssert(CmdName.isFileName())
-  doAssert(Action.seqOfAll()-->all(($it).isUtf8())
+  doAssert(Action.seqOfAll()-->all(($it).isUtf8()))
+]#
