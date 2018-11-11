@@ -7,11 +7,22 @@ import std/unicode
 
 
 
+func checkFileName (f: string): bool {. locks: 0 .} =
+  result = case f
+    of $CurDir, $ParDir:
+      true
+    else:
+      f.isFileName()
+
+
 func isPath* (x: string): bool {. locks: 0 .} =
-  result = x.split(DirSep.toRune())-->all(
-    case it
-      of $CurDir, $ParDir:
-        true
+  let path = x.split(DirSep.toRune())
+
+  when defined(unix) or defined(macosx):
+    result =
+      if path.len() > 1 and path[path.low()] == "":
+        path[path.low().succ()..path.high()]-->all(it.checkFileName())
       else:
-        it.isFileName()
-  )
+        path-->all(it.checkFileName())
+  else:
+    result = path-->all(it.checkFileName())
