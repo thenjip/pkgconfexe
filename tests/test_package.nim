@@ -1,8 +1,6 @@
 import pkgconfexe/package
 
-import pkg/zero_functional
-
-import std/[ os, sequtils, strformat, strscans, unittest ]
+import std/[ os, strformat, strscans, unittest ]
 
 
 include "data.nims"
@@ -28,7 +26,6 @@ suite "package":
         noisyPkg.scanf(Pattern, match)
         match == p
 
-    check:
-      (toSeq(walkFiles(fmt"{DataDir}/*.pc")))-->all(
-        it.splitFile().name.isPackage()
-      )
+      for f in walkFiles(fmt"{DataDir}/*.pc"):
+        check:
+          f.splitFile().name.isPackage()

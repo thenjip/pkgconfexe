@@ -1,4 +1,4 @@
-import private/[ filename, fphelper, identifier, path, utf8 ]
+import private/[ filename, fphelper, path, utf8 ]
 
 import pkg/zero_functional
 
@@ -62,7 +62,6 @@ func buildEnv* (env: seq[EnvVarValue]): string {.
 
 
 
-#[
-static:
-  doAssert(EnvVar.seqOfAll()-->all(($it).isIdentifier()))
-]#
+#static:
+#  doAssert(EnvVar.seqOfAll()-->all(($it).isIdentifier()))
+

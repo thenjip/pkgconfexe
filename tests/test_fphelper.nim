@@ -12,10 +12,28 @@ type Direction = enum
 
 
 
-suite "enum2seq":
-  test "seqOfAll":
-    const AllDirections = Direction.seqOfAll()
+const
+  AllDirectionSet = setOfAll(Direction)
+  AllDirectionSeq = seqOfAll(Direction)
 
+
+
+suite "fphelper":
+  test "setOfAll":
     check:
-      AllDirections == @[ north, east, south, west ]
-      AllDirections != @[ east, south, west, north ]
+      AllDirectionSet == { Direction.low()..Direction.high() }
+      AllDirectionSet - { west } ==
+        { Direction.low()..Direction.high() } - { west }
+
+
+  test "seqOfAll":
+    check:
+      AllDirectionSeq == @[ north, east, south, west ]
+      AllDirectionSeq != @[ east, south, west, north ]
+      seqOfAll(east..south) == @[ east, south ]
+
+
+  test "callZFunc":
+    check:
+      compiles(AllDirectionSeq.callZFunc(map(it)).len() == 4)
+      compiles(AllDirectionSet.callZFunc(map(it)).len() == 4)

@@ -1,44 +1,47 @@
 import pkgconfexe/comparator
-import pkgconfexe/private/fphelper
-
-import pkg/zero_functional
 
 import std/[ unicode, unittest ]
 
 
 
-const SomeInvalidComparators = [ "=", "&", "+", "-", "^", "" ]
+const SomeInvalidComparators = [ "=", "&", "+", "-", "^" ]
 
 
 
 suite "comparator":
   test "isComparator":
-    check:
-      Comparator.seqOfAll()-->all(($it).isComparator())
-      SomeInvalidComparators-->all(not it.isComparator())
+    for c in AllComparators:
+      check:
+        ($c).isComparator()
+
+    for s in SomeInvalidComparators:
+      check:
+        not s.isComparator()
 
 
   test "option":
-    check:
-      Comparator.seqOfAll()-->all(it.option() == ComparatorOptions[it])
+    for c in AllComparators:
+      check:
+        c.option() == ComparatorOptions[c]
 
 
   test "comparator":
-    for c in SomeInvalidComparators:
+    for s in SomeInvalidComparators:
       expect ValueError:
-        let cmp = c.toComparator()
+        let c = s.toComparator()
 
 
   test "scanfComparator":
     for s in [ "", "ép>=" ]:
-      var c: Comparator
+      var c = Comparator.high()
 
       check:
         s.scanfComparator(c, s.low()) == 0
+        c == Comparator.None
 
     for s in [ "==3.0", "<=µ" ]:
-      var c: Comparator
+      var c = Comparator.None
 
       check:
         s.scanfComparator(c, s.low()) == ComparatorNChars
-        $c == s.runeSubStr(s.low(), ComparatorNChars)
+        c != Comparator.None

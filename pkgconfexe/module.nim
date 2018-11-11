@@ -18,7 +18,22 @@ type Module* = tuple
 
 
 func hasNoVersion* (m: Module): bool {. locks: 0 .} =
-  result = m.version.len() == 0
+  result = m.cmp == Comparator.None
+
+
+
+func `==`* (l, r: Module): bool {. locks: 0 .} =
+  result =
+    if l.hasNoVersion():
+      if r.hasNoVersion():
+        l.pkg == r.pkg
+      else:
+        false
+    elif r.hasNoVersion():
+      false
+    else:
+      system.`==`(l, r)
+
 
 
 

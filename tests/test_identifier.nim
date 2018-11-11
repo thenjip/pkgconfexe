@@ -1,14 +1,17 @@
 import pkgconfexe/private/identifier
 
-import pkg/zero_functional
-
-import std/[ sequtils, unittest ]
+import std/unittest
 
 
 
 suite "identifier":
   test "isIdentifier":
-    check:
-      [ "_", "_é", "ù1", "_1", "a3ë", "CC" ]-->all(it.isIdentifier())
-      [ "1a", "-v", "ŋ-a" ]-->all(not it.isIdentifier())
-      [ "SOME_ENV_VAR", "_ANOTHER" ]-->all(it.isIdentifier())
+    for input in [
+      "_", "_é", "ù1", "_1", "a3ë", "CC", "SOME_ENV_VAR", "_ANOTHER"
+    ]:
+      check:
+        input.isIdentifier()
+
+    for input in [ "1a", "-v", "ŋ-a" ]:
+      check:
+        not input.isIdentifier()

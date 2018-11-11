@@ -65,6 +65,10 @@ else:
 
 
 
+const AllReservedNames = ReservedName.setOfAll()
+
+
+
 func checkRunes (x: string): bool {. locks: 0 .} =
   let (lastRune, lastRuneLen) = x.lastRune(x.high())
 
@@ -79,10 +83,10 @@ func isFileName* (x: string): bool {. locks: 0 .} =
   result =
     x.len() > 0 and
     x.runeAt(x.low()) != ShortOptionPrefix and
-    checkRunes(x) and
-    ReservedName.seqOfAll().callZFunc(all($it != x))
+    x.checkRunes() and
+    AllReservedNames.callZFunc(all($it != x))
 
 
 
 static:
-  doAssert(ReservedName.seqOfAll()-->all(($it).isUtf8()))
+  doAssert(AllReservedNames-->all(($it).isUtf8()))

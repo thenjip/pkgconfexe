@@ -1,6 +1,5 @@
 import pkgconfexe/env
-
-import pkg/zero_functional
+import pkgconfexe/private/identifier
 
 from std/ospaths import CurDir, DirSep, PathSep
 import std/[ ospaths, strformat, strutils, unittest ]
@@ -35,11 +34,17 @@ suite "env":
       $SomeConfigPath == SomeConfigPathString
       $SomeSysrootDir == SomeSysrootDirString
 
+    for e in EnvVar:
+      check:
+        ($e).isIdentifier()
+
 
   test "validateEnvVarValue":
+    for ev in [ SomeConfigPath, SomeSysrootDir ]:
+      check: ev.validateEnvVarValue()
+
     check:
-      [ SomeConfigPath, SomeSysrootDir ]-->all(it.validateEnvVarValue())
-      [ SomeInvalidLibdir ]-->all(not it.validateEnvVarValue())
+      not SomeInvalidLibdir.validateEnvVarValue()
 
 
   test "toString":

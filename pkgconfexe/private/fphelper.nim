@@ -8,8 +8,21 @@ template seqOfAll* [T](a: Iterable[T]; iter: untyped): seq[T] =
   toSeq(a.iter())
 
 
-func seqOfAll* (E: typedesc[enum]): seq[E] {. locks: 0 .} =
-  result = E.seqOfAll(items)
+template seqOfAll* (E: typedesc[enum]): seq[E] =
+  E.seqOfAll(items)
+
+
+template seqOfAll* [E: enum](s: Slice[E]): seq[E] =
+  s.seqOfAll(items)
+
+
+
+template setOfAll* [E: enum](e: typedesc[E]): set[E] =
+  { e.low()..e.high() }
+
+
+template setOfAll* [E: enum](s: Slice[E]): set[E] =
+  { s }
 
 
 

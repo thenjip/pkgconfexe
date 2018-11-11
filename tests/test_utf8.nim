@@ -1,7 +1,5 @@
 import pkgconfexe/private/utf8
 
-import pkg/zero_functional
-
 import std/[ strscans, unicode, unittest ]
 
 
@@ -22,8 +20,9 @@ suite "utf8":
   test "RuneInCharSet":
     const SomeCharSet = { 'a'..'z' }
 
-    check:
-      SomeCharSet-->all(($it).runeAt(0) in SomeCharSet)
+    for c in SomeCharSet:
+      check:
+        ($c).runeAt(0) in SomeCharSet
 
     const NotInStr = "è"
     check:
