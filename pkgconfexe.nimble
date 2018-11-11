@@ -4,9 +4,9 @@ description = "Wrapper to query information from the pkgconf command line tool"
 license = "MIT"
 
 requires "nim >= 0.19.1",
-  "unicodedb >= 0.5.2",
-  "unicodeplus >= 0.3.2",
-  "zero_functional >= 0.1.1"
+  "unicodedb >= 0.6.0",
+  "unicodeplus >= 0.4.0",
+  "zero_functional >= 0.2.0"
 
 srcDir = packageName
 skipDirs = @[ "tests" ]

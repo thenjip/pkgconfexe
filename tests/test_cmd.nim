@@ -1,7 +1,7 @@
 import pkgconfexe/cmd
 
 from std/ospaths import DirSep
-import std/[ strformat, unittest ]
+import std/[ ospaths, strformat, unittest ]
 
 
 include "data.nims"
@@ -15,7 +15,7 @@ const
   SomeEnvVarValues = @[
     (
       envVar: EnvVar.PkgConfigPath,
-      val: DataDir
+      val: currentSourcePath().splitFile().dir / DataDir
     )
   ]
 
@@ -39,10 +39,15 @@ suite "cmd":
         )
 
 
+  const Pattern = """(\S+|[-]+\S+)"""
+
+
   test "getCFlags":
+    const ExpectedCFlags = "-Idummy -Ideps"
+
     check:
-      CFlags1 == "-Idummy -Ideps"
-      CFlags2 == "-Idummy -Ideps"
+      CFlags1 == ExpectedCFlags
+      CFlags2 == ExpectedCFlags
 
 
   test "getLdFlags":

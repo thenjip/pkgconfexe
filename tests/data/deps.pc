@@ -1,7 +1,10 @@
+prefix=/usr
+
+
 Name: Deps
 Description: deps
 Version: 0.0.0
-Requires:
+Requires: deps >= 0.0.0
 Requires.private:
-Libs: -ldeps
-Cflags: -Ideps
+Libs: -ldummy
+Cflags: -Idummy

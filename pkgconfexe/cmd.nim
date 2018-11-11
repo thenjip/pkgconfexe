@@ -43,12 +43,9 @@ func buildCmdLine* (m: Module; env: seq[EnvVarValue]; a: Action): string {.
 func execCmds (
   modules: seq[Module]; env: seq[EnvVarValue]; a: Action
 ): string {. locks: 0, compileTime, raises: [ ValueError ] .} =
-  var results: seq[string]
-
-  for m in modules:
-    results.add(staticExec(m.buildCmdLine(env, a)))
-
-  result = results.join($' ')
+  result = modules.callZFunc(map(it.buildCmdLine(env, a).staticExec())).join(
+    $' '
+  )
 
 
 func getCFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
