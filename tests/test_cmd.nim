@@ -1,6 +1,7 @@
 import pkgconfexe/cmd
 
-import std/[ ospaths, strformat, unittest ]
+from std/ospaths import DirSep
+import std/[ strformat, unittest ]
 
 
 include "data.nims"
@@ -8,13 +9,18 @@ include "data.nims"
 
 
 const
-  DepsModule = DepsPkg.toModule()
-  DummyModule = DummyPkg.toModule()
+  DepsModule = (pkg: DepsPkg, cmp: Comparator.LessEq, version: "0.0.1")
+  DummyModule = (pkg: DummyPkg, cmp: Comparator.None, version: "")
 
-  SomeEnvVarValues = @[ (envVar: EnvVar.PkgConfigPath, val: DataDir) ]
+  SomeEnvVarValues = @[
+    (
+      envVar: EnvVar.PkgConfigPath,
+      val: DataDir
+    )
+  ]
 
-  CFlags1 = getCFlags(@[ DummyModule, DepsModule], SomeEnvVarValues)
-  CFlags2 = getCFlags(@[ fmt"{DummyPkg} >= 0.0".toModule() ], SomeEnvVarValues)
+  CFlags1 = getCFlags(@[ DummyModule, DepsModule ], SomeEnvVarValues)
+  CFlags2 = getCFlags(@[ DummyModule ], SomeEnvVarValues)
 
   LdFlags = getLdFlags(@[ DepsModule ], SomeEnvVarValues)
 
@@ -27,9 +33,9 @@ suite "cmd":
         fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
       buildCmdLine(DepsModule, SomeEnvVarValues, Action.LdFlags) ==
         fmt(
-          "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags} " &
-            """{DepsModule.op.option()} "{DepsModule.version}{'"'}""" &
-            """{DepsModule.pkg}{'"'}"""
+          "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags}" &
+            """ {DepsModule.cmp.option()} "{DepsModule.version}{'"'}""" &
+            """ "{DepsModule.pkg}{'"'}"""
         )
 
 

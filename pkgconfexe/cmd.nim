@@ -16,7 +16,7 @@ const CmdName* = "pkgconf".addFileExt(ExeExt)
 
 type Action* {. pure .} = enum
   CFlags = "--cflags"
-  LdFlags = "--ldflags"
+  LdFlags = "--libs"
 
 
 
@@ -41,28 +41,31 @@ func buildCmdLine* (m: Module; env: seq[EnvVarValue]; a: Action): string {.
 
 
 func execCmds (
-  modules: seq[static[Module]]; env: seq[static[EnvVarValue]]; a: static[Action]
-): static[string] {. locks: 0, compileTime, raises: [ ValueError ] .} =
-  result = modules.callZFunc(map(staticExec(it.buildCmdLine(env, a)))).join(
-    $' '
-  )
+  modules: seq[Module]; env: seq[EnvVarValue]; a: Action
+): string {. locks: 0, compileTime, raises: [ ValueError ] .} =
+  var results: seq[string]
+
+  for m in modules:
+    results.add(staticExec(m.buildCmdLine(env, a)))
+
+  result = results.join($' ')
 
 
-func getCFlags* (
-  modules: seq[static[Module]]; env: seq[static[EnvVarValue]]
-): static[string] {. locks: 0, compileTime, raises: [ ValueError ] .} =
+func getCFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
+  locks: 0, compileTime, raises: [ ValueError ]
+.} =
   result = modules.execCmds(env, Action.CFlags)
 
 
-func getLdFlags* (
-  modules: seq[static[Module]]; env: seq[static[EnvVarValue]]
-): static[string] {. locks: 0, compileTime, raises: [ ValueError ] .} =
+func getLdFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
+  locks: 0, compileTime, raises: [ ValueError ]
+.} =
   result = modules.execCmds(env, Action.LdFlags)
 
 
 
-#[
+
 static:
   doAssert(CmdName.isFileName())
   doAssert(Action.seqOfAll()-->all(($it).isUtf8()))
-]#
+
