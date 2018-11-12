@@ -4,7 +4,7 @@ prefix=/usr
 Name: Deps
 Description: deps
 Version: 0.0.0
-Requires: deps >= 0.0.0
+Requires:
 Requires.private:
-Libs: -ldummy
-Cflags: -Idummy
+Libs: -ldeps
+Cflags: -Ideps

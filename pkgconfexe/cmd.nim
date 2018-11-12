@@ -21,7 +21,7 @@ type Action* {. pure .} = enum
 
 
 func buildCmdLine* (m: Module; env: seq[EnvVarValue]; a: Action): string {.
-  locks: 0, raises: [ ValueError ]
+  locks: 0, raises: [ ValueError ], tags: []
 .} =
   let cmd =
     if m.hasNoVersion():
@@ -39,23 +39,37 @@ func buildCmdLine* (m: Module; env: seq[EnvVarValue]; a: Action): string {.
       fmt"{env.buildEnv()} {cmd}"
 
 
+func execCmd (cmd: string): string {.
+  compileTime, locks: 0, raises: [ OSError ], tags: [ ExecIOEffect ]
+.} =
+  let cmdResult = gorgeEx(cmd)
+
+  result =
+    if cmdResult.exitCode == QuitSuccess:
+      cmdResult.output
+    else:
+      raise newException(OSError, &"Command failed:\n{cmd}")
+
 
 func execCmds (
   modules: seq[Module]; env: seq[EnvVarValue]; a: Action
-): string {. locks: 0, compileTime, raises: [ ValueError ] .} =
-  result = modules.callZFunc(map(it.buildCmdLine(env, a).staticExec())).join(
-    $' '
-  )
+): string {.
+  compileTime,
+  locks: 0,
+  raises: [ OSError, ValueError ],
+  tags: [ ExecIOEffect ]
+.} =
+  result = modules.callZFunc(map(it.buildCmdLine(env, a).execCmd())).join($' ')
 
 
 func getCFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
-  locks: 0, compileTime, raises: [ ValueError ]
+  compileTime, locks: 0, raises: [ OSError, ValueError ], tags: [ ExecIOEffect ]
 .} =
   result = modules.execCmds(env, Action.CFlags)
 
 
 func getLdFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
-  locks: 0, compileTime, raises: [ ValueError ]
+  compileTime, locks: 0, raises: [ OSError, ValueError ], tags: [ ExecIOEffect ]
 .} =
   result = modules.execCmds(env, Action.LdFlags)
 

@@ -1,5 +1,7 @@
 import pkgconfexe/cmd
 
+import pkg/regex
+
 from std/ospaths import DirSep
 import std/[ ospaths, strformat, unittest ]
 
@@ -39,15 +41,14 @@ suite "cmd":
         )
 
 
-  const Pattern = """(\S+|[-]+\S+)"""
-
-
   test "getCFlags":
-    const ExpectedCFlags = "-Idummy -Ideps"
+    const
+      ExpectedCFlags = "-Idummy -Ideps"
+      Pattern = fmt"^{ExpectedCFlags}\s*$"
 
     check:
-      CFlags1 == ExpectedCFlags
-      CFlags2 == ExpectedCFlags
+      CFlags1.contains(re(Pattern))
+      CFlags2.contains(re(Pattern))
 
 
   test "getLdFlags":
