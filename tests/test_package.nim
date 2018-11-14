@@ -1,4 +1,7 @@
 import pkgconfexe/package
+import pkgconfexe/private/fphelper
+
+import pkg/zero_functional
 
 import std/[ os, strformat, strscans, unittest ]
 
@@ -12,20 +15,21 @@ suite "package":
     check:
       not "".isPackage()
 
-    const
-      Pattern = "${scanfPackage}"
-      SomePkgNames = [ "gtk+", ".NET", "ØMQ" ]
-
-    for p in SomePkgNames:
-      check:
-        p.isPackage()
-
-      let noisyPkg = fmt"{p},d^¨"
-      var match = ""
-      check:
-        noisyPkg.scanf(Pattern, match)
-        match == p
-
-      for f in walkFiles(fmt"{DataDir}/*.pc"):
+    [ "gtk+", ".NET", "ØMQ" ]-->foreach(
+      (proc (p: string) =
         check:
-          f.splitFile().name.isPackage()
+          p.isPackage()
+
+        let noisyPkg = fmt"{p},d^¨"
+        var match = ""
+
+        check:
+          noisyPkg.scanf("${scanfPackage}", match)
+          match == p
+      )(it)
+    )
+
+    seqOf(walkFiles(fmt"{DataDir}/*.pc")).zfun:
+      foreach:
+        check:
+          it.splitFile().name.isPackage()

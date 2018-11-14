@@ -63,5 +63,5 @@ func buildEnv* (env: seq[EnvVarValue]): string {.
 
 
 #static:
-#  doAssert(EnvVar.setOfAll()-->all(($it).isIdentifier()))
+#  doAssert(setOfAll(EnvVar)-->all(($it).isIdentifier()))
 

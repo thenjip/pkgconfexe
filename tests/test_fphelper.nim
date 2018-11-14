@@ -1,5 +1,7 @@
 import pkgconfexe/private/fphelper
 
+import pkg/zero_functional
+
 import std/unittest
 
 
@@ -24,6 +26,14 @@ suite "fphelper":
       AllDirectionSet == { Direction.low()..Direction.high() }
       AllDirectionSet - { west } ==
         { Direction.low()..Direction.high() } - { west }
+
+
+  test "seqOf":
+    check:
+      compiles:
+        seqOf([ "", "" ].mpairs()).zfun:
+          foreach:
+            discard
 
 
   test "seqOfAll":

@@ -1,5 +1,7 @@
 import pkgconfexe/comparator
 
+import pkg/zero_functional
+
 import std/[ unicode, unittest ]
 
 
@@ -10,38 +12,42 @@ const SomeInvalidComparators = [ "=", "&", "+", "-", "^" ]
 
 suite "comparator":
   test "isComparator":
-    for c in AllComparators:
-      check:
-        ($c).isComparator()
+    AllComparators.zfun:
+      foreach:
+        check:
+          ($it).isComparator()
 
-    for s in SomeInvalidComparators:
-      check:
-        not s.isComparator()
+    SomeInvalidComparators.zfun:
+      foreach:
+        check:
+          not it.isComparator()
 
 
   test "option":
-    for c in AllComparators:
-      check:
-        c.option() == ComparatorOptions[c]
+    AllComparators.zfun:
+      foreach:
+        check:
+          it.option() == ComparatorOptions[it]
 
 
   test "comparator":
-    for s in SomeInvalidComparators:
-      expect ValueError:
-        let c = s.toComparator()
+    SomeInvalidComparators.zfun:
+      foreach:
+        expect ValueError:
+          let c = it.toComparator()
 
 
   test "scanfComparator":
-    for s in [ "", "ép>=" ]:
-      var c = Comparator.high()
+    [ "", "ép>=" ].zfun:
+      foreach:
+        var c: Comparator
 
-      check:
-        s.scanfComparator(c, s.low()) == 0
-        c == Comparator.None
+        check:
+          it.scanfComparator(c, it.low()) == 0
 
-    for s in [ "==3.0", "<=µ" ]:
-      var c = Comparator.None
+    [ "==3.0", "<=µ" ].zfun:
+      foreach:
+        var c: Comparator
 
-      check:
-        s.scanfComparator(c, s.low()) == ComparatorNChars
-        c != Comparator.None
+        check:
+          it.scanfComparator(c, it.low()) == ComparatorNChars

@@ -10,39 +10,34 @@ export comparator
 
 
 
-type Module* = tuple
-  pkg: string
-  cmp: Comparator
-  version: string
-
-
-
-func hasNoVersion* (m: Module): bool {. locks: 0 .} =
-  result = m.cmp == Comparator.None
+type Module* = object
+  pkg*: string
+  case hasVersion*: bool
+    of true:
+      cmp*: Comparator
+      version*: string
+    of false:
+      discard
 
 
 
 func `==`* (l, r: Module): bool {. locks: 0 .} =
   result =
-    if l.hasNoVersion():
-      if r.hasNoVersion():
-        l.pkg == r.pkg
-      else:
-        false
-    elif r.hasNoVersion():
-      false
+    if l.hasVersion:
+      r.hasVersion and
+        l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
     else:
-      system.`==`(l, r)
+      (not r.hasVersion) and l.pkg == r.pkg
 
 
 
 
 func `$`* (m: Module): string {. locks: 0 .} =
   result =
-    if m.hasNoVersion():
-      m.pkg
-    else:
+    if m.hasVersion:
       fmt"{m.pkg}{$m.cmp}{m.version}"
+    else:
+      m.pkg
 
 
 
@@ -50,25 +45,30 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
   locks: 0
 .} =
   result = 0
-  var tmp: Module
+  var
+    pkg = ""
+    cmp: Comparator
+    version = ""
 
-  let pkgLen = input.scanfPackage(tmp.pkg, start)
+  let pkgLen = input.scanfPackage(pkg, start)
 
   if pkgLen > 0:
     result += pkgLen + input.skipWhitespaces(start + pkgLen)
-    let cmpLen = input.scanfComparator(tmp.cmp, start + result)
+    let cmpLen = input.scanfComparator(cmp, start + result)
 
     if cmpLen > 0:
       result += cmpLen + input.skipWhitespaces(start + cmpLen)
-      let versionLen = input.scanfVersion(tmp.version, start + result)
+      let versionLen = input.scanfVersion(version, start + result)
 
-      if versionLen == 0:
-        result -= cmpLen
-      else:
+      if versionLen > 0:
         result += versionLen
-        m = tmp
+        m.reset()
+        m = Module(pkg: pkg, hasVersion: true, cmp: cmp, version: version)
+      else:
+        result = 0
     else:
-      m = tmp
+      m.reset()
+      m = Module(pkg: pkg, hasVersion: false)
 
 
 
@@ -79,7 +79,7 @@ func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
     raise newException(ValueError, fmt""""{s}" is not a valid module.""")
 
 
-func toModules* (mods: openarray[string]): seq[Module] {.
-  locks: 0, raises: [ ValueError ]
+func module* (s: static[string]): Module {.
+  compileTime, locks: 0, raises: [ ValueError ]
 .} =
-  result = mods-->map(it.toModule())
+  result = s.toModule()

@@ -1,51 +1,59 @@
 import pkgconfexe/module
-import pkgconfexe/private/utf8
+import pkgconfexe/private/[ fphelper, utf8 ]
+
+import pkg/zero_functional
 
 import std/[ strscans, unittest ]
 
 
 
 const
-  SomeModules: array[3, Module] = [
-    (pkg: "a", cmp: Comparator.Equal, version: "6"),
-    (pkg: "C#", cmp: Comparator.GreaterEq, version: "2.0.5-4~ß"),
-    (pkg: "gtk+-3.0", cmp: Comparator.None, version: "3.0.1")
+  SomeModules = [
+    Module(pkg: "a", hasVersion: true, cmp: Comparator.Equal, version: "6"),
+    Module(
+      pkg: "C#",
+      hasVersion: true,
+      cmp: Comparator.GreaterEq,
+      version: "2.0.5-4~ß"
+    ),
+    Module(pkg: "gtk+-3.0", hasVersion: false)
   ]
 
   SomeStringModules = [ "a==6", "C#>=2.0.5-4~ß", "gtk+-3.0" ]
 
-  Pattern = "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]"
+  Pattern = "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]$."
   Inputs = [ "a==6", " C# \t>=\f 2.0.5-4~ß", "gtk+-3.0\l\0" ]
 
 
 
 suite "module":
-  test "hasNoVersion":
-    check:
-      SomeModules[2].hasNoVersion()
-      not SomeModules[0].hasNoVersion()
-
-
   test "$":
-    for iter in SomeModules.pairs():
-      check:
-        $iter.val == SomeStringModules[iter.key]
+    seqOf(SomeModules.pairs()).zfun:
+      foreach:
+        check:
+          $it.val == SomeStringModules[it.key]
 
 
   test "scanfModule":
-    for iter in Inputs.pairs():
-      var match: Module
-      check:
-        iter.val.scanf(Pattern, match)
-        match == SomeModules[iter.key]
+    seqOf(Inputs.pairs()).zfun:
+      foreach:
+        var match: Module
+        check:
+          it.val.scanf(Pattern, match)
+          match == SomeModules[it.key]
 
 
   test "toModule":
-    for iter in Inputs.pairs():
-      check:
-        iter.val.toModule() == SomeModules[iter.key]
+    seqOf(Inputs.pairs()).zfun:
+      foreach:
+        check:
+          it.val.toModule() == SomeModules[it.key]
 
-    expect ValueError:
-      discard "".toModule()
-    expect ValueError:
-      discard "a  p".toModule()
+    [ "", "a  p" ].zfun:
+      foreach:
+        expect ValueError:
+          discard it.toModule()
+
+
+  test "moduleR":
+    const m = module"a==6"

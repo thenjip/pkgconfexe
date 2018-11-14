@@ -1,15 +1,19 @@
 import pkgconfexe/private/path
 
+import pkg/zero_functional
+
 import std/[ ospaths, unittest ]
 
 
 
 suite "path":
   test "isPath":
-    for p in [ "$PWD"/".."/".", ""/"usr" ]:
-      check:
-        p.isPath()
+    [ "$PWD"/".."/".", ""/"usr" ].zfun:
+      foreach:
+        check:
+          it.isPath()
 
-    for p in [ "\0"/"abc" ]:
-      check:
-        not p.isPath()
+    [ "\0"/"abc" ].zfun:
+      foreach:
+        check:
+          not it.isPath()

@@ -1,6 +1,6 @@
 import pkgconfexe/cmd
 
-import pkg/regex
+import pkg/[ regex, zero_functional ]
 
 from std/ospaths import DirSep
 import std/[ ospaths, strformat, unittest ]
@@ -11,8 +11,10 @@ include "data.nims"
 
 
 const
-  DepsModule = (pkg: DepsPkg, cmp: Comparator.LessEq, version: "0.0.1")
-  DummyModule = (pkg: DummyPkg, cmp: Comparator.None, version: "")
+  DepsModule = Module(
+    pkg: DepsPkg, hasversion: true, cmp: Comparator.LessEq, version: "0.0.1"
+  )
+  DummyModule = Module(pkg: DummyPkg, hasVersion: false)
 
   SomeEnvVarValues = @[
     (
@@ -42,13 +44,10 @@ suite "cmd":
 
 
   test "getCFlags":
-    const
-      ExpectedCFlags = "-Idummy -Ideps"
-      Pattern = fmt"^{ExpectedCFlags}\s*$"
-
-    check:
-      CFlags1.contains(re(Pattern))
-      CFlags2.contains(re(Pattern))
+    [ CFlags1, CFlags2 ].zfun:
+      foreach:
+        check:
+          it.contains(re"^-Idummy -Ideps\s*$")
 
 
   test "getLdFlags":

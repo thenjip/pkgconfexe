@@ -7,7 +7,6 @@ import std/[ strformat, options, unicode ]
 
 
 type Comparator* {. pure .} = enum
-  None = ""
   LessEq = "<="
   Equal = "=="
   GreaterEq = ">="
@@ -16,7 +15,6 @@ type Comparator* {. pure .} = enum
 
 const
   ComparatorOptions*: array[Comparator, string] = [
-    "",
     "--max-version",
     "--exact-version",
     "--atleast-version"
@@ -25,7 +23,6 @@ const
   ComparatorNChars* = 2
 
   AllComparators* = Comparator.setOfAll()
-  AllNonEmptyComparators* = AllComparators - { Comparator.None }
 
 
 
@@ -39,16 +36,16 @@ func isComparator* (x: string): bool {. locks: 0 .} =
 
 
 
-func findComparator (x: string; cmps: set[Comparator]): Option[Comparator] {.
+func findComparator (x: string): Option[Comparator] {.
   locks: 0
 .} =
-  result = cmps-->find(($it).toRunes() == x.toRunes())
+  result = AllComparators-->find(($it).toRunes() == x.toRunes())
 
 
 func toComparator* (x: string): Comparator {.
   locks: 0, raises: [ ValueError ]
 .} =
-  let found = findComparator(x, AllComparators)
+  let found = x.findComparator()
 
   result =
     if found.isSome():
@@ -61,31 +58,28 @@ func toComparator* (x: string): Comparator {.
 
 
 func parseComparator (input: string; c: var Comparator): int {. locks: 0 .} =
-  let found = findComparator(
-    input[input.low()..ComparatorNChars - 1], AllNonEmptyComparators
-  )
+  let found = input[input.low()..ComparatorNChars - 1].findComparator()
 
   if found.isSome():
     result = ComparatorNChars
     c = found.unsafeGet()
   else:
     result = 0
-    c = Comparator.None
 
 
 func scanfComparator* (input: string; c: var Comparator; start: int): int {.
   locks: 0
 .} =
+  result =
     if input.len() - start < ComparatorNChars:
-      result = 0
-      c = Comparator.None
+      0
     else:
-      result = parseComparator(input[start..input.high()], c)
+      parseComparator(input[start..input.high()], c)
 
 
 
 static:
-  doAssert(AllNonEmptyComparators-->all(
+  doAssert(AllComparators-->all(
     ($it).len() == ComparatorNChars and
     ($it).isUtf8() and
     it.option().isUtf8()

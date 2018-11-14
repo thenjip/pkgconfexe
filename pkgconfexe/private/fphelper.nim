@@ -3,9 +3,21 @@ import pkg/zero_functional
 from std/sequtils import toSeq
 
 
+template setOfAll* [E: enum](e: typedesc[E]): set[E] =
+  { e.low()..e.high() }
+
+
+template setOfAll* [E: enum](s: Slice[E]): set[E] =
+  { s }
+
+
+
+template seqOf* (iter: untyped): untyped =
+  toSeq(iter)
+
 
 template seqOfAll* [T](a: Iterable[T]; iter: untyped): seq[T] =
-  toSeq(a.iter())
+  seqOf(a.iter())
 
 
 template seqOfAll* (E: typedesc[enum]): seq[E] =
@@ -14,15 +26,6 @@ template seqOfAll* (E: typedesc[enum]): seq[E] =
 
 template seqOfAll* [E: enum](s: Slice[E]): seq[E] =
   s.seqOfAll(items)
-
-
-
-template setOfAll* [E: enum](e: typedesc[E]): set[E] =
-  { e.low()..e.high() }
-
-
-template setOfAll* [E: enum](s: Slice[E]): set[E] =
-  { s }
 
 
 
