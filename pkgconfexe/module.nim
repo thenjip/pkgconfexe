@@ -10,14 +10,12 @@ export comparator
 
 
 
-type Module* = object
-  pkg*: string
-  case hasVersion*: bool
-    of true:
-      cmp*: Comparator
-      version*: string
-    of false:
-      discard
+type
+  Module* = tuple
+    pkg: string
+    hasVersion: bool
+    cmp: Comparator
+    version: string
 
 
 
@@ -28,7 +26,6 @@ func `==`* (l, r: Module): bool {. locks: 0 .} =
         l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
     else:
       (not r.hasVersion) and l.pkg == r.pkg
-
 
 
 
@@ -62,13 +59,11 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
 
       if versionLen > 0:
         result += versionLen
-        m.reset()
-        m = Module(pkg: pkg, hasVersion: true, cmp: cmp, version: version)
+        m = (pkg: pkg, hasVersion: true, cmp: cmp, version: version)
       else:
         result = 0
     else:
-      m.reset()
-      m = Module(pkg: pkg, hasVersion: false)
+      m = (pkg: pkg, hasVersion: false, cmp: Comparator.low(), version: version)
 
 
 
@@ -80,6 +75,6 @@ func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
 
 
 func module* (s: static[string]): Module {.
-  compileTime, locks: 0, raises: [ ValueError ]
+  locks: 0, raises: [ ValueError ]
 .} =
   result = s.toModule()

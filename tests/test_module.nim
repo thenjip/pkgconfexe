@@ -9,14 +9,14 @@ import std/[ strscans, unittest ]
 
 const
   SomeModules = [
-    Module(pkg: "a", hasVersion: true, cmp: Comparator.Equal, version: "6"),
-    Module(
+    (pkg: "a", hasVersion: true, cmp: Comparator.Equal, version: "6"),
+    (
       pkg: "C#",
       hasVersion: true,
       cmp: Comparator.GreaterEq,
       version: "2.0.5-4~ß"
     ),
-    Module(pkg: "gtk+-3.0", hasVersion: false)
+    (pkg: "gtk+-3.0", hasVersion: false, cmp: Comparator.low(), version: "")
   ]
 
   SomeStringModules = [ "a==6", "C#>=2.0.5-4~ß", "gtk+-3.0" ]
@@ -55,5 +55,5 @@ suite "module":
           discard it.toModule()
 
 
-  test "moduleR":
+  test "module":
     const m = module"a==6"
