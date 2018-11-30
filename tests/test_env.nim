@@ -1,10 +1,7 @@
 import pkgconfexe/env
-import pkgconfexe/private/[ fphelper, identifier ]
 
-import pkg/zero_functional
-
-from std/ospaths import CurDir, DirSep, PathSep
-import std/[ ospaths, strformat, strutils, unittest ]
+from std/os import CurDir, DirSep, PathSep
+import std/[ os, strformat, strutils, unittest ]
 
 
 
@@ -24,10 +21,6 @@ const
   SomeSysrootDirString =
     fmt"""{$SomeSysrootDir.envVar}="{SomeSysrootDir.val}{'"'}"""
 
-  InvalidFileName = &"{DataDir}\0a"
-
-  SomeInvalidLibdir = (envVar: EnvVar.PkgConfigLibdir, val: InvalidFileName)
-
 
 
 suite "env":
@@ -35,30 +28,6 @@ suite "env":
     check:
       $SomeConfigPath == SomeConfigPathString
       $SomeSysrootDir == SomeSysrootDirString
-
-    seqOfAll(EnvVar).zfun:
-      foreach:
-        check:
-          ($it).isIdentifier()
-
-
-  test "validateEnvVarValue":
-    [ SomeConfigPath, SomeSysrootDir ].zfun:
-      foreach:
-        check:
-          it.validateEnvVarValue()
-
-    check:
-      not SomeInvalidLibdir.validateEnvVarValue()
-
-
-  test "toString":
-    check:
-      SomeConfigPath.toString() == SomeConfigPathString
-      SomeSysrootDir.toString() == SomeSysrootDirString
-
-    expect ValueError:
-      let tmp = SomeInvalidLibdir.toString()
 
 
   test "buildEnv":
@@ -69,5 +38,3 @@ suite "env":
 
     expect ValueError:
       let tmp = @[ SomeConfigPath, SomeConfigPath ].buildEnv()
-    expect ValueError:
-      let tmp = @[ SomeInvalidLibdir ].buildEnv()

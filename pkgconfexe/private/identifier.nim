@@ -6,6 +6,10 @@ import std/unicode except isAlpha
 
 
 
+# 'Identifier' means 'Environment variable identifier'.
+
+
+
 const
   AllowedCharOthers* = { '_' }
   AllowedOtherCharCategories* = ctgL + ctgN
@@ -19,11 +23,13 @@ func checkRunes (x: string): bool {. locks: 0 .} =
 
   result =
     (firstRune in AllowedCharOthers or firstRune.isAlpha()) and
-    x[x.low() + firstRuneLen..x.high()].toRunes().callZFunc(all(
-      it.unicodeCategory() in AllowedOtherCharCategories or
-      it in AllowedCharOthers
-    ))
+    x[x.low() + firstRuneLen .. x.high()].toRunes().callZFunc(
+      all(
+        it in AllowedCharOthers or
+        it.unicodeCategory() in AllowedOtherCharCategories
+      )
+    )
 
 
 func isIdentifier* (x: string): bool {. locks: 0 .} =
-  result = x.len() > 0 and checkRunes(x)
+  result = x.len() > 0 and x.checkRunes()

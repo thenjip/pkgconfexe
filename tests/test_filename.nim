@@ -2,7 +2,7 @@ import pkgconfexe/private/[ filename, fphelper ]
 
 import pkg/zero_functional
 
-import std/[ os, macros, unittest ]
+import std/[ os, macros, sequtils, unittest ]
 
 
 
@@ -12,7 +12,7 @@ suite "filename":
       not "".isFileName()
       "Zfmbkç9^`{'à’Ω§ŁÐŊª® Æħ̉̉ĸłþ¨¤؆".isFileName()
 
-    seqOf(walkFiles("*.nim*")).zfun:
+    toSeq("*.nim*".walkFiles()).zfun:
       foreach:
         check:
           it.isFileName()

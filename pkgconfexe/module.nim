@@ -63,7 +63,9 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
       else:
         result = 0
     else:
-      m = (pkg: pkg, hasVersion: false, cmp: Comparator.low(), version: version)
+      m = (
+        pkg: pkg, hasVersion: false, cmp: Comparator.default(), version: version
+      )
 
 
 

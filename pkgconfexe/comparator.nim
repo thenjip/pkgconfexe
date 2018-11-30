@@ -22,7 +22,10 @@ const
 
   ComparatorNChars* = 2
 
-  AllComparators* = Comparator.setOfAll()
+
+
+func default* (T: typedesc[Comparator]): T {. locks: 0 .} =
+  result = T.GreaterEq
 
 
 
@@ -31,34 +34,23 @@ func option* (c: Comparator): string {. locks: 0 .} =
 
 
 
+func matches (c: Comparator; s: string): bool {. locks: 0 .} =
+  result = $c == s
+
+
 func isComparator* (x: string): bool {. locks: 0 .} =
-  result = AllComparators-->exists(($it).toRunes() == x.toRunes())
+  result = Comparator-->exists(it.matches(x))
 
 
 
 func findComparator (x: string): Option[Comparator] {.
   locks: 0
 .} =
-  result = AllComparators-->find(($it).toRunes() == x.toRunes())
-
-
-func toComparator* (x: string): Comparator {.
-  locks: 0, raises: [ ValueError ]
-.} =
-  let found = x.findComparator()
-
-  result =
-    if found.isSome():
-      found.unsafeGet()
-    else:
-      raise newException(
-        ValueError, fmt""""{x}" is not a supported comparator."""
-      )
-
+  result = Comparator-->find(it.matches(x))
 
 
 func parseComparator (input: string; c: var Comparator): int {. locks: 0 .} =
-  let found = input[input.low()..ComparatorNChars - 1].findComparator()
+  let found = input.findComparator()
 
   if found.isSome():
     result = ComparatorNChars
@@ -74,13 +66,14 @@ func scanfComparator* (input: string; c: var Comparator; start: int): int {.
     if input.len() - start < ComparatorNChars:
       0
     else:
-      parseComparator(input[start..input.high()], c)
+      parseComparator(input[start .. start + ComparatorNChars], c)
 
 
 
 static:
-  doAssert(AllComparators-->all(
-    ($it).len() == ComparatorNChars and
-    ($it).isUtf8() and
-    it.option().isUtf8()
-  ))
+  Comparator.zfun:
+    foreach:
+      doAssert(($it).len() == ComparatorNChars)
+      doAssert(($it).isUtf8())
+      doAssert(it.option().isUtf8())
+
