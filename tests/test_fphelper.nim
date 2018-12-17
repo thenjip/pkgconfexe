@@ -14,36 +14,7 @@ type Direction = enum
 
 
 
-const
-  AllDirectionSet = setOfAll(Direction)
-  AllDirectionSeq = seqOfAll(Direction)
-
-
-
 suite "fphelper":
-  test "setOfAll":
-    check:
-      AllDirectionSet == { Direction.low()..Direction.high() }
-      AllDirectionSet - { west } ==
-        { Direction.low()..Direction.high() } - { west }
-
-
-  test "seqOf":
-    check:
-      compiles:
-        seqOf([ "", "" ].mpairs()).zfun:
-          foreach:
-            discard
-
-
-  test "seqOfAll":
-    check:
-      AllDirectionSeq == @[ north, east, south, west ]
-      AllDirectionSeq != @[ east, south, west, north ]
-      seqOfAll(east..south) == @[ east, south ]
-
-
   test "callZFunc":
     check:
-      compiles(AllDirectionSeq.callZFunc(map(it)).len() == 4)
-      compiles(AllDirectionSet.callZFunc(map(it)).len() == 4)
+      compiles(Direction.callZFunc(map(it)).len() == 4)
