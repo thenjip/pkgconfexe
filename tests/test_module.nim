@@ -8,15 +8,10 @@ import std/[ sequtils, strscans, unittest ]
 
 
 const
-  SomeModules = [
-    (pkg: "a", hasVersion: true, cmp: Comparator.Equal, version: "6"),
-    (
-      pkg: "C#",
-      hasVersion: true,
-      cmp: Comparator.GreaterEq,
-      version: "2.0.5-4~ß"
-    ),
-    (pkg: "gtk+-3.0", hasVersion: false, cmp: Comparator.low(), version: "")
+  SomeModules: array[3, Module] = [
+    constructModule("a", Comparator.Equal, "6"),
+    constructModule("C#", Comparator.GreaterEq, "2.0.5-4~ß"),
+    constructModule("gtk+-3.0")
   ]
 
   SomeStringModules = [ "a==6", "C#>=2.0.5-4~ß", "gtk+-3.0" ]

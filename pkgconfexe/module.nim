@@ -3,7 +3,7 @@ import private/[ fphelper, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ strformat, strscans, unicode ]
+import std/[ options, strformat, strscans, unicode ]
 
 
 export comparator
@@ -11,27 +11,54 @@ export comparator
 
 
 type
-  Module* = tuple
-    pkg: string
-    hasVersion: bool
+  VersionInfo* = tuple
     cmp: Comparator
     version: string
+
+  Module* = tuple
+    pkg: string
+    versionInfo: Option[VersionInfo]
+
+
+
+func constructModule* (pkg: string): Module {. locks: 0 .} =
+  result = (pkg: pkg, versionInfo: VersionInfo.none())
+
+
+func constructModule* (
+  pkg: string; cmp: Comparator; version: string
+): Module {. locks: 0 .} =
+  result = (pkg: pkg, versionInfo: (cmp: cmp, version: version).some())
+
+
+
+func hasVersion* (m: Module): bool {. locks: 0 .} =
+  result = m.versionInfo.isSome()
+
+
+
+func cmp (m: Module): Comparator {. locks: 0 .} =
+  result = m.versionInfo.unsafeGet().cmp
+
+
+func version (m: Module): string {. locks: 0 .} =
+  result = m.versionInfo.unsafeGet().version
 
 
 
 func `==`* (l, r: Module): bool {. locks: 0 .} =
   result =
-    if l.hasVersion:
-      r.hasVersion and
+    if l.hasVersion():
+      r.hasVersion() and
         l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
     else:
-      (not r.hasVersion) and l.pkg == r.pkg
+      (not r.hasVersion()) and l.pkg == r.pkg
 
 
 
 func `$`* (m: Module): string {. locks: 0 .} =
   result =
-    if m.hasVersion:
+    if m.hasVersion():
       fmt"{m.pkg}{$m.cmp}{m.version}"
     else:
       m.pkg
@@ -59,13 +86,11 @@ func scanfModule* (input: string; m: var Module; start: int): int {.
 
       if versionLen > 0:
         result += versionLen
-        m = (pkg: pkg, hasVersion: true, cmp: cmp, version: version)
+        m = constructModule(pkg, cmp, version)
       else:
         result = 0
     else:
-      m = (
-        pkg: pkg, hasVersion: false, cmp: Comparator.default(), version: version
-      )
+      m = constructModule(pkg)
 
 
 
