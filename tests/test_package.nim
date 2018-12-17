@@ -1,9 +1,8 @@
 import pkgconfexe/package
-import pkgconfexe/private/fphelper
 
 import pkg/zero_functional
 
-import std/[ os, strformat, strscans, unittest ]
+import std/[ os, sequtils, strformat, strscans, unittest ]
 
 
 include "data.nims"
@@ -29,7 +28,7 @@ suite "package":
       )(it)
     )
 
-    seqOf(walkFiles(fmt"{DataDir}/*.pc")).zfun:
+    toSeq(fmt"{DataDir}/*.pc".walkFiles()).zfun:
       foreach:
         check:
           it.splitFile().name.isPackage()

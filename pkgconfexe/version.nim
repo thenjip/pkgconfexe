@@ -14,19 +14,24 @@ const
 
 
 
+func isValid (r: Rune): bool {. locks: 0 .} =
+  result = r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
+
+
+
 func isVersion* (x: string): bool {. locks: 0 .} =
   result =
     x.len() > 0 and
-    x.toRunes().callZFunc(all(
-      it in AllowedCharOthers or it.unicodeCategory() in AllowedCategories
-    ))
+    x.toRunes().callZFunc(all(it.isValid()))
 
 
 
 func scanfVersion* (input: string; version: var string; start: int): int {.
   locks: 0
 .} =
-  version = $input[start..input.high()].toRunes().callZFunc(takeWhile(
-    it in AllowedCharOthers or it.unicodeCategory() in AllowedCategories
-  ))
-  result = version.len()
+  let found = $input[start .. input.high()].toRunes().callZFunc(
+    takeWhile(it.isValid())
+  )
+
+  version = found
+  result = found.len()

@@ -1,31 +1,28 @@
 import fphelper, utf8
 
-import pkg/zero_functional
+import pkg/[ unicodedb, zero_functional ]
 
-from std/ospaths import AltSep, Curdir, DirSep, ParDir, PathSep
+from std/os import AltSep, Curdir, DirSep, ParDir, PathSep
 import std/[ strutils, unicode ]
 
 
 
 when defined(windows):
   const
-    ForbiddenChars* = {
+    ReservedChars* = {
       '?', '*',
       ':', PathSep,
       '/', '\\', '|', AltSep, DirSep,
-      '\"',
-      '<', '>',
-      '\0'..'\x1f', '\x7f', '\x80'..'\x9f'
+      '"',
+      '<', '>'
     }
 
-    ForbiddenLastChars* = { ' ', '.' } + ForbiddenChars
+    ForbiddenLastChars* = { ' ', '.' } + ReservedChars
 else:
   const
-    ForbiddenChars* = {
-      AltSep, DirSep, PathSep, '\0'..'\x1f', '\x7f', '\x80'..'\x9f'
-    }
+    ReservedChars* = { AltSep, DirSep, PathSep }
 
-    ForbiddenLastChars* = ForbiddenChars
+    ForbiddenLastChars* = ReservedChars
 
 const
   ShortOptionPrefix* = '-'
@@ -65,18 +62,14 @@ else:
 
 
 
-const AllReservedNames = ReservedName.setOfAll()
-
-
-
 func checkRunes (x: string): bool {. locks: 0 .} =
   let (lastRune, lastRuneLen) = x.lastRune(x.high())
 
   result =
     lastRune notin ForbiddenLastChars and
-    x[x.low()..x.high() - lastRuneLen].toRunes().callZFunc(all(
-      it notin ForbiddenChars
-    ))
+    x[x.low() .. x.high() - lastRuneLen].toRunes().callZFunc(
+      all(it notin ReservedChars and it.unicodeCategory() != ctgCc)
+    )
 
 
 func isFileName* (x: string): bool {. locks: 0 .} =
@@ -84,9 +77,9 @@ func isFileName* (x: string): bool {. locks: 0 .} =
     x.len() > 0 and
     x.runeAt(x.low()) != ShortOptionPrefix and
     x.checkRunes() and
-    AllReservedNames.callZFunc(all($it != x))
+    ReservedName.callZFunc(all($it != x))
 
 
 
 static:
-  doAssert(AllReservedNames-->all(($it).isUtf8()))
+  ReservedName-->foreach(doAssert(($it).isUtf8()))

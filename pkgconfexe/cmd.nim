@@ -3,7 +3,7 @@ import private/[ filename, fphelper, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ ospaths, strformat, strutils ]
+import std/[ os, strformat, strutils ]
 
 
 export env, module
@@ -44,11 +44,11 @@ func execCmd (cmd: string): string {.
 .} =
   let cmdResult = gorgeEx(cmd)
 
-  result =
-    if cmdResult.exitCode == QuitSuccess:
-      cmdResult.output
-    else:
-      raise newException(OSError, &"Command failed:\n{cmd}")
+  if cmdResult.exitCode != QuitSuccess:
+    raise newException(OSError, &"Command failed:\n{cmd}")
+
+  result = cmdResult.output
+
 
 
 func execCmds (
@@ -75,8 +75,7 @@ func getLdFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
 
 
 
-
 static:
   doAssert(CmdName.isFileName())
-  doAssert(Action.seqOfAll()-->all(($it).isUtf8()))
+  Action-->foreach(doAssert(($it).isUtf8()))
 

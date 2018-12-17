@@ -1,9 +1,9 @@
 import pkgconfexe/module
-import pkgconfexe/private/[ fphelper, utf8 ]
+import pkgconfexe/private/utf8
 
 import pkg/zero_functional
 
-import std/[ strscans, unittest ]
+import std/[ sequtils, strscans, unittest ]
 
 
 
@@ -28,14 +28,14 @@ const
 
 suite "module":
   test "$":
-    seqOf(SomeModules.pairs()).zfun:
+    toSeq(SomeModules.pairs()).zfun:
       foreach:
         check:
           $it.val == SomeStringModules[it.key]
 
 
   test "scanfModule":
-    seqOf(Inputs.pairs()).zfun:
+    toSeq(Inputs.pairs()).zfun:
       foreach:
         var match: Module
         check:
@@ -44,7 +44,7 @@ suite "module":
 
 
   test "toModule":
-    seqOf(Inputs.pairs()).zfun:
+    toSeq(Inputs.pairs()).zfun:
       foreach:
         check:
           it.val.toModule() == SomeModules[it.key]

@@ -1,3 +1,5 @@
+import fphelper
+
 import pkg/[ unicodeplus, zero_functional ]
 
 import std/unicode except isWhiteSpace
@@ -48,13 +50,8 @@ func isUtf8* (x: string{~lit}): bool {. locks: 0 .} =
 
 
 func skipWhiteSpaces* (input: string; start: int): int {. locks: 0 .} =
-  let
-    slicedIn = input[start..input.high()]
-    idx = slicedIn.toRunes()-->index(not it.isWhiteSpace())
-
   result =
-    if idx >= 0:
-      idx
-    else:
-      slicedIn.len()
+    input[start .. input.high()].toRunes().callZFunc(
+      takeWhile(it.isWhiteSpace())
+    ).len()
 

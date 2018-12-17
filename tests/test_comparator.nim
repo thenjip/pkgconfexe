@@ -6,13 +6,13 @@ import std/[ unicode, unittest ]
 
 
 
-const SomeInvalidComparators = [ "=", "&", "+", "-", "^" ]
+const SomeInvalidComparators = [ "=", "& ", "++", "-", "^" ]
 
 
 
 suite "comparator":
   test "isComparator":
-    AllComparators.zfun:
+    Comparator.zfun:
       foreach:
         check:
           ($it).isComparator()
@@ -24,17 +24,10 @@ suite "comparator":
 
 
   test "option":
-    AllComparators.zfun:
+    Comparator.zfun:
       foreach:
         check:
           it.option() == ComparatorOptions[it]
-
-
-  test "comparator":
-    SomeInvalidComparators.zfun:
-      foreach:
-        expect ValueError:
-          let c = it.toComparator()
 
 
   test "scanfComparator":

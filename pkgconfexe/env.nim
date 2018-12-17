@@ -1,8 +1,8 @@
-import private/[ filename, fphelper, path, utf8 ]
+import private/[ filename, fphelper, identifier, utf8 ]
 
 import pkg/zero_functional
 
-from std/ospaths import PathSep
+from std/os import PathSep
 import std/[ strformat, strutils, unicode ]
 
 
@@ -24,24 +24,14 @@ func `$`* (e: EnvVarValue): string {. locks: 0 .} =
 
 
 
-func validateEnvVarValue* (e: EnvVarValue): bool {. locks: 0 .} =
-  result = case e.envVar
-    of EnvVar.PkgConfigLibdir, EnvVar.PkgConfigPath:
-      e.val.split(PathSep.toRune())-->all(it.isPath())
-    of EnvVar.PkgConfigSysrootDir:
-      e.val.isPath()
+func toString (e: EnvVarValue; envVars: var set[EnvVar]): string {.
+  locks: 0, raises: [ ValueError ]
+.} =
+  if e.envVar in envVars:
+    raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
 
-
-
-func toString* (e: EnvVarValue): string {. locks: 0, raises: [ ValueError ] .} =
-  result =
-    if not e.validateEnvVarValue():
-      raise newException(
-        ValueError, fmt"""Invalid value for "{$e.envVar}": {e.val}"""
-      )
-    else:
-      $e
-
+  result = $e
+  envVars.incl(e.envVar)
 
 
 func buildEnv* (env: seq[EnvVarValue]): string {.
@@ -49,19 +39,10 @@ func buildEnv* (env: seq[EnvVarValue]): string {.
 .} =
   var envVars: set[EnvVar]
 
-  result = env.callZFunc(map(
-    (func (e: EnvVarValue): string =
-      result =
-        if e.envVar in envVars:
-          raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
-        else:
-          e.toString()
-      envVars.incl(e.envVar)
-    )(it)
-  )).join($' ')
+  result = env.callZFunc(map(it.toString(envVars))).join($' ')
 
 
 
-#static:
-#  doAssert(setOfAll(EnvVar)-->all(($it).isIdentifier()))
+static:
+  EnvVar-->foreach(doAssert(($it).isIdentifier()))
 
