@@ -1,5 +1,4 @@
-import package
-import private/[ fphelper, utf8 ]
+import private/[ fphelper, parseresult, utf8 ]
 
 import pkg/unicodedb
 
@@ -26,12 +25,11 @@ func isVersion* (x: string): bool {. locks: 0 .} =
 
 
 
-func scanfVersion* (input: string; version: var string; start: int): int {.
-  locks: 0
-.} =
-  let found = $input[start .. input.high()].toRunes().callZFunc(
-    takeWhile(it.isValid())
-  )
+func parseVersion* (input: string): ParseResult[string] {. locks: 0 .} =
+  let n = ($input.toRunes().callZFunc(takeWhile(it.isValid()))).len()
 
-  version = found
-  result = found.len()
+  result =
+    if n > 0:
+      n.some()
+    else:
+      string.none()

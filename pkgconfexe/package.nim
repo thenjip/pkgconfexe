@@ -1,8 +1,8 @@
-import private/[ fphelper, utf8 ]
+import private/[ fphelper, parseresult, utf8 ]
 
 import pkg/[ unicodedb, zero_functional ]
 
-import std/[ unicode ]
+import std/unicode
 
 
 
@@ -13,7 +13,7 @@ const
 
 
 
-func isValid (r: Rune): bool {. locks: 0 .} =
+func isValid* (r: Rune): bool {. locks: 0 .} =
   result = r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
 
 
@@ -23,12 +23,11 @@ func isPackage* (x: string): bool {. locks: 0 .} =
 
 
 
-func scanfPackage* (input: string; pkg: var string; start: int): int {.
-  locks: 0
-.} =
-  let found = $input[start .. input.high()].toRunes().callZFunc(
-    takeWhile(it.isValid())
-  )
+func parsePackage* (input: string): ParseResult[string] {. locks: 0 .} =
+  let n = ($input.toRunes().callZFunc(takeWhile(it.isValid()))).len()
 
-  pkg = found
-  result = found.len()
+  result =
+    if n > 0:
+      n.some()
+    else:
+      string.none()

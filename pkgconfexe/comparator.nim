@@ -1,8 +1,8 @@
-import private/[ fphelper, utf8 ]
+import private/[ fphelper, parseresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ strformat, options, unicode ]
+import std/[ strformat, tables, unicode ]
 
 
 
@@ -14,6 +14,14 @@ type Comparator* {. pure .} = enum
 
 
 const
+  ComparatorMap* = toTable(
+    Comparator-->map(
+      (func (c: Comparator): (seq[Rune], Comparator) =
+        result = (($it).toRunes(), it)
+      )(it)
+    )
+  )
+
   ComparatorOptions*: array[Comparator, string] = [
     "--max-version",
     "--exact-version",
@@ -34,46 +42,48 @@ func option* (c: Comparator): string {. locks: 0 .} =
 
 
 
-func matches (c: Comparator; s: string): bool {. locks: 0 .} =
-  result = $c == s
+func isComparator* (x: seq[Rune]): bool {. locks: 0 .} =
+  result = ComparatorMap.hasKey(x)
 
 
 func isComparator* (x: string): bool {. locks: 0 .} =
-  result = Comparator-->exists(it.matches(x))
+  result = x.toRunes().isComparator()
 
 
 
-func findComparator (x: string): Option[Comparator] {.
-  locks: 0
-.} =
-  result = Comparator-->find(it.matches(x))
+func findComparator (x: seq[Rune]): ParseResult[Comparator] {. locks: 0 .} =
+  result =
+    if x.isComparator():
+      ComparatorMap[x].some(ComparatorNChars)
+    else:
+      Comparator.none()
 
 
-func parseComparator (input: string; c: var Comparator): int {. locks: 0 .} =
-  let found = input.findComparator()
-
-  if found.isSome():
-    result = ComparatorNChars
-    c = found.unsafeGet()
-  else:
-    result = 0
+func findComparator (x: string): ParseResult[Comparator] {. locks: 0 .} =
+  result = x.toRunes().findComparator()
 
 
-func scanfComparator* (input: string; c: var Comparator; start: int): int {.
+#[
+  Assumes the input is in UTF-8.
+  All the comparators are internally encoded in ASCII.
+]#
+func parseComparator* (input: string): ParseResult[Comparator] {.
   locks: 0
 .} =
   result =
-    if input.len() - start < ComparatorNChars:
-      0
+    if input.len() < ComparatorNChars:
+      Comparator.none()
     else:
-      parseComparator(input[start .. start + ComparatorNChars], c)
+      input[
+        input.low() .. input.low() + ComparatorNChars
+      ].findComparator()
 
 
 
 static:
   Comparator.zfun:
     foreach:
-      doAssert(($it).len() == ComparatorNChars)
       doAssert(($it).isUtf8())
+      doAssert(($it).len() == ComparatorNChars)
+      doAssert(($it).toRunes().len() == ComparatorNChars)
       doAssert(it.option().isUtf8())
-
