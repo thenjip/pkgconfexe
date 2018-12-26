@@ -1,9 +1,9 @@
 import comparator, package, version
-import private/[ fphelper, utf8 ]
+import private/[ fphelper, parseresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ options, strformat, strscans, unicode ]
+import std/[ options, strformat, sugar, unicode ]
 
 
 export comparator
@@ -22,12 +22,12 @@ type
 
 
 func constructModule* (pkg: string): Module {. locks: 0 .} =
-  result = (pkg: pkg, versionInfo: VersionInfo.none())
+  result = (pkg: pkg, versionInfo: options.none(VersionInfo))
 
 
-func constructModule* (
-  pkg: string; cmp: Comparator; version: string
-): Module {. locks: 0 .} =
+func constructModule* (pkg: string; cmp: Comparator; version: string): Module {.
+  locks: 0
+.} =
   result = (pkg: pkg, versionInfo: (cmp: cmp, version: version).some())
 
 
@@ -65,43 +65,18 @@ func `$`* (m: Module): string {. locks: 0 .} =
 
 
 
-func scanfModule* (input: string; m: var Module; start: int): int {.
-  locks: 0
+func parseModule* (input: string): ParseResult[Module] {. locks: 0 .} =
+  result = input.parsePackage().flatMap(
+    (n) -> ParseResult[Module] =>
+      input[n .. input.high()].parseComparator().flatMapOr(
+        (cmp, n) -> ParseResult[Module] => ,
+        parseresult.some(input[input.low() .. n].constructModule())
+      )
+  )
+
+
+
+func module* (x: static[string]): Module {.
+  locks: 0, raises: [ UnpackError ]
 .} =
-  result = 0
-  var
-    pkg = ""
-    cmp: Comparator
-    version = ""
-
-  let pkgLen = input.scanfPackage(pkg, start)
-
-  if pkgLen > 0:
-    result += pkgLen + input.skipWhitespaces(start + pkgLen)
-    let cmpLen = input.scanfComparator(cmp, start + result)
-
-    if cmpLen > 0:
-      result += cmpLen + input.skipWhitespaces(start + cmpLen)
-      let versionLen = input.scanfVersion(version, start + result)
-
-      if versionLen > 0:
-        result += versionLen
-        m = constructModule(pkg, cmp, version)
-      else:
-        result = 0
-    else:
-      m = constructModule(pkg)
-
-
-
-func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
-  if not s.scanf(
-    "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]$.", result
-  ):
-    raise newException(ValueError, fmt""""{s}" is not a valid module.""")
-
-
-func module* (s: static[string]): Module {.
-  locks: 0, raises: [ ValueError ]
-.} =
-  result = s.toModule()
+  result = x.parseModule(x.low()).get()
