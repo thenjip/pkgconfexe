@@ -1,6 +1,6 @@
 import indexslice
 
-import std/[ strformat, typetraits ]
+import std/[ options, strformat, typetraits ]
 
 
 
@@ -13,6 +13,17 @@ type ParseResult* [T] = object
 
 func emptySlice* [I: SomeIndexInteger](): Slice[I] {. locks: 0 .} =
   result = 0.I .. 0.I
+
+
+
+func buildParseResult* [T: string](
+  bounds: IndexSlice[Natural]
+): ParseResult[T] {. locks: 0 .} =
+  result =
+    if bounds.isEmpty():
+      T.emptyParseResult()
+    else:
+      bounds.someParseResult()
 
 
 
@@ -100,6 +111,20 @@ func flatMap* [T: not string, R](
   f: func (val: T; bounds: NonEmptyIndexSlice[Natural]): ParseResult[R]
 ): ParseResult[R] =
   result = self.flatMapOr(f, R.none())
+
+
+
+func optionToParseResult* [T](
+  opt: Option[T]; bounds: NonEmptyIndexSlice[Natural]
+): ParseResult[T] {. locks: 0 .} =
+  result =
+    if opt.isSome():
+      when T is string:
+        bounds.someParseResult()
+      else:
+        opt.unsafeGet().someParseResult(bounds)
+    else:
+      T.emptyParseResult()
 
 
 
