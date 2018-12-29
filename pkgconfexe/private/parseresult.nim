@@ -11,25 +11,30 @@ type ParseResult* [T] = object
 
 
 
-func some* [T: string](bounds: NonEmptyIndexSlice[Natural]): ParseResult[T] {.
-  locks: 0
-.} =
+func emptySlice* [I: SomeIndexInteger](): Slice[I] {. locks: 0 .} =
+  result = 0.I .. 0.I
+
+
+
+func someParseResult* [T: string](
+  bounds: NonEmptyIndexSlice[Natural]
+): ParseResult[T] {. locks: 0 .} =
   result = ParseResult[T](bounds: bounds)
 
 
-func some* [T: not string](
+func someParseResult* [T: not string](
   val: T; bounds: NonEmptyIndexSlice[Natural]
 ): ParseResult[T] {. locks: 0 .} =
   result = ParseResult[T](bounds: bounds, val: val)
 
 
 
-func none* (T: typedesc): ParseResult[T] {. locks: 0 .} =
+func emptyParseResult* (T: typedesc): ParseResult[T] {. locks: 0 .} =
   result =
     when T is string:
-      ParseResult[T](bounds: emptySlice())
+      ParseResult[T](bounds: Natural.emptySlice())
     else:
-      ParseResult[T](bounds: emptySlice(), val: T.default())
+      ParseResult[T](bounds: Natural.emptySlice(), val: T.default())
 
 
 
@@ -38,7 +43,7 @@ func isSome* [T](self: ParseResult[T]): bool {. locks: 0 .} =
 
 
 func isNone* [T](self: ParseResult[T]): bool {. locks: 0 .} =
-  result = self.bounds.a == self.bounds.b
+  result = self.bounds.isEmpty()
 
 
 
@@ -50,7 +55,8 @@ proc doIfSome* [T: string](
 
 
 proc doIfSome* [T: not string](
-  self: ParseResult[T]; callback: proc (val: T; bounds: IndexSlice[Natural])
+  self: ParseResult[T];
+  callback: proc (val: T; bounds: NonEmptyIndexSlice[Natural])
 ) =
   if self.isSome():
     callback(self.val, self.bounds)
@@ -59,7 +65,7 @@ proc doIfSome* [T: not string](
 
 func flatMapOr* [T: string, R](
   self: ParseResult[T];
-  f: func (bounds: IndexSlice[Natural]): ParseResult[R];
+  f: func (bounds: NonEmptyIndexSlice[Natural]): ParseResult[R];
   otherwise: ParseResult[R]
 ): ParseResult[R] =
   result =
@@ -71,7 +77,7 @@ func flatMapOr* [T: string, R](
 
 func flatMapOr* [T: not string, R](
   self: ParseResult[T];
-  f: func (val: T; bounds: IndexSlice[Natural]): ParseResult[R];
+  f: func (val: T; bounds: NonEmptyIndexSlice[Natural]): ParseResult[R];
   otherwise: ParseResult[R]
 ): ParseResult[R] =
   result =
@@ -83,29 +89,35 @@ func flatMapOr* [T: not string, R](
 
 
 func flatMap* [T: string, R](
-  self: ParseResult[T]; f: func (bounds: IndexSlice[Natural]): ParseResult[R]
+  self: ParseResult[T];
+  f: func (bounds: NonEmptyIndexSlice[Natural]): ParseResult[R]
 ): ParseResult[R] =
   result = self.flatMapOr(f, R.none())
 
 
 func flatMap* [T: not string, R](
-  self: ParseResult[T]; f: func (val: T; bounds: IndexSlice[Natural]): ParseResult[R]
+  self: ParseResult[T];
+  f: func (val: T; bounds: NonEmptyIndexSlice[Natural]): ParseResult[R]
 ): ParseResult[R] =
   result = self.flatMapOr(f, R.none())
 
 
 
-func `$`* [T](self: ParseResult[T]): string {. locks: 0 .} =
+func membersToString [T](self: ParseResult[T]): string {. locks: 0 .} =
   result =
     if self.isSome():
       when T is string:
-        fmt"[{T}]({self.bounds})"
+        $self.bounds
       else:
-        fmt"[{T}]({self.bounds}, {self.val})"
+        fmt"{self.bounds}, {self.val}"
     else:
-      fmt"[{T}]()"
+      ""
+
+
+func `$`* [T](self: ParseResult[T]): string {. locks: 0 .} =
+  result = fmt"[{T}]({self.membersToString()})"
 
 
 
-func emptySlice* (I: typedesc[SomeInteger]): Slice[I] {. locks: 0 .} =
-  result = 0.I .. 0.I
+static:
+  doAssert(emptySlice[Natural]().isEmpty())

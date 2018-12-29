@@ -2,28 +2,36 @@ import pkg/zero_functional
 
 
 
+## Index slices are slices whose lower bound is always less than its uper bound.
+
+
+
 type
-  IndexHSlice* [L, U] = concept x of HSlice[L, U]
-    L is SomeInteger
-    U is SomeInteger
+  SomeIndexInteger* = SomeInteger | SomeOrdinal | range
+
+
+  IndexHSlice* [L, U: SomeIndexInteger] = concept x of HSlice[L, U]
     x.a <= x.b
 
-  IndexSlice* [I] = concept x of IndexHSlice[I, I]
+  IndexSlice* [I: SomeIndexInteger] = concept x of Slice[I]
+    x.a <= x.b
 
 
-  NonEmptyIndexHSlice* [L, U] = concept x of IndexHSlice[L, U]
+  NonEmptyIndexHSlice* [L, U: SomeIndexInteger] =
+    concept x of HSlice[L, U]
+      x.a < x.b
+
+  NonEmptyIndexSlice* [I: SomeIndexInteger] = concept x of Slice[I]
     x.a < x.b
 
-  NonEmptyIndexSlice* [I] = concept x of NonEmptyIndexHSlice[I, I]
 
 
-
-func isEmpty* [L, U](hs: IndexHSlice[L, U]): bool {. locks: 0 .} =
+func isEmpty* [L, U: SomeIndexInteger](hs: HSlice[L, U]): bool {. locks: 0 .} =
   result = hs.a == hs.b
 
 
-func isEmpty* [I](s: IndexSlice[I]): bool {. locks: 0 .} =
-  result = s.isEmpty[: I, I]()
+func isEmpty* [I: SomeIndexInteger](s: Slice[I]): bool {. locks: 0 .} =
+  result = s.a == s.b
 
 
 
@@ -41,3 +49,7 @@ static:
     foreach:
       doAssert(it isnot IndexHSlice[int, int])
       doAssert(it isnot IndexSlice[int])
+
+  [ -1 .. -1, 0 .. 0, 4983094 .. 4983094 ].zfun:
+    foreach:
+      doAssert(it.isEmpty())
