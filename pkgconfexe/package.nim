@@ -24,10 +24,6 @@ func isPackage* (x: string): bool {. locks: 0 .} =
 
 
 func parsePackage* (input: string): ParseResult[string] {. locks: 0 .} =
-  let n = ($input.toRunes().callZFunc(takeWhile(it.isValid()))).len()
-
-  result =
-    if n > 0:
-      n.some()
-    else:
-      string.none()
+  result = (
+    input.low() .. ($input.toRunes().callZFunc(takeWhile(it.isValid()))).len()
+  ).buildParseResult()

@@ -2,7 +2,7 @@ import private/[ fphelper, parseresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ strformat, tables, unicode ]
+import std/[ options, strformat, tables, unicode ]
 
 
 
@@ -51,16 +51,20 @@ func isComparator* (x: string): bool {. locks: 0 .} =
 
 
 
-func findComparator (x: seq[Rune]): ParseResult[Comparator] {. locks: 0 .} =
+func findComparator (x: seq[Rune]): Option[Comparator] {. locks: 0 .} =
   result =
     if x.isComparator():
-      ComparatorMap[x].some(ComparatorNChars)
+      ComparatorMap[x].some()
     else:
       Comparator.none()
 
 
-func findComparator (x: string): ParseResult[Comparator] {. locks: 0 .} =
-  result = x.toRunes().findComparator()
+func findComparator (input: string; start: Natural): ParseResult[Comparator] {.
+  locks: 0
+.} =
+  let slice = start .. start + ComparatorNChars
+
+  result = input[slice].toRunes().findComparator().optionToParseResult(slice)
 
 
 #[
@@ -72,11 +76,9 @@ func parseComparator* (input: string): ParseResult[Comparator] {.
 .} =
   result =
     if input.len() < ComparatorNChars:
-      Comparator.none()
+      Comparator.emptyParseResult()
     else:
-      input[
-        input.low() .. input.low() + ComparatorNChars
-      ].findComparator()
+      input.findComparator(input.low())
 
 
 
