@@ -13,16 +13,14 @@ type
   IndexHSlice* [L, U: SomeIndexInteger] = concept x of HSlice[L, U]
     x.a <= x.b
 
-  IndexSlice* [I: SomeIndexInteger] = concept x of Slice[I]
-    x.a <= x.b
+  IndexSlice* [I: SomeIndexInteger] = concept x of IndexHSlice[I, I]
 
 
-  NonEmptyIndexHSlice* [L, U: SomeIndexInteger] =
-    concept x of HSlice[L, U]
-      x.a < x.b
-
-  NonEmptyIndexSlice* [I: SomeIndexInteger] = concept x of Slice[I]
+  NonEmptyIndexHSlice* [L, U: SomeIndexInteger] = concept x of HSlice[L, U]
     x.a < x.b
+
+  NonEmptyIndexSlice* [I: SomeIndexInteger] =
+    concept x of NonEmptyIndexHSlice[I, I]
 
 
 
