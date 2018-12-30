@@ -1,9 +1,9 @@
 import comparator, package, version
-import private/[ fphelper, parseresult, utf8 ]
+import private/[ scanresult ]
 
 import pkg/zero_functional
 
-import std/[ options, strformat, sugar, unicode ]
+import std/[ options, strformat ]
 
 
 export comparator
@@ -15,20 +15,20 @@ type
     cmp: Comparator
     version: string
 
-  Module* = tuple
-    pkg: string
+  Module* = object
+    pkg*: string
     versionInfo: Option[VersionInfo]
 
 
 
 func buildModule* (pkg: string): Module {. locks: 0 .} =
-  result = (pkg: pkg, versionInfo: options.none(VersionInfo))
+  result = Module(pkg: pkg, versionInfo: options.none(VersionInfo))
 
 
 func buildModule* (pkg: string; cmp: Comparator; version: string): Module {.
   locks: 0
 .} =
-  result = (pkg: pkg, versionInfo: (cmp: cmp, version: version).some())
+  result = Module(pkg: pkg, versionInfo: (cmp: cmp, version: version).some())
 
 
 
@@ -65,15 +65,44 @@ func `$`* (m: Module): string {. locks: 0 .} =
 
 
 
-func parseModule* (input: string): ParseResult[Module] {. locks: 0 .} =
-  result = input.parsePackage().flatMap(
-    func (bounds: NonEmptyIndexSlice[Natural]): ParseResult[Module] =
-      result = input[]
+func scanModule* (input: string; start: Natural): ScanResult[Module] =
+  result = input.scanPackage(start).flatMap(
+    func (pkgSlice: SeqIndexSlice): ScanResult[Module] =
+      result =
+        if pkgSlice.b == input.high():
+          input[pkgSlice].buildModule().someScanResult(
+            pkgSlice.a, pkgSlice.len()
+          )
+        else:
+          input.scanComparator(pkgSlice.b + 1).flatMapOr(
+            input[pkgSlice].buildModule().someScanResult(
+              pkgSlice.a, pkgSlice.len()
+            ),
+            func (
+              cmp: Comparator; cmpSlice: SeqIndexSlice
+            ): ScanResult[Module] =
+              result =
+                if cmpSlice.b == input.high():
+                  Module.emptyScanResult()
+                else:
+                  input.scanVersion(cmpSlice.b + 1).flatMap(
+                    func (versionSlice: SeqIndexSlice): ScanResult[Module] =
+                      result = input[pkgSlice].buildModule(
+                        cmp, input[versionSlice]
+                      ).someScanResult(start, versionSlice.b + 1)
+                  )
+          )
   )
 
 
+func scanModule* (input: string): ScanResult[Module] =
+  result = input.scanModule(input.low())
 
-func module* (x: static[string]): Module {.
-  locks: 0, raises: [ NoValueError ]
-.} =
-  result = x.parseModule(x.low()).get().val
+
+
+func module* (input: static[string]; start: static[Natural]): static[Module] =
+  result = input.scanModule(start).get()
+
+
+func module* (input: static[string]): static[Module] =
+  result = input.scanModule().get()
