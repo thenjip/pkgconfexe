@@ -1,8 +1,8 @@
 import fphelper
 
-import pkg/[ unicodeplus, zero_functional ]
+import pkg/[ unicodedb, zero_functional ]
 
-import std/unicode except isWhiteSpace
+import std/unicode
 
 
 
@@ -49,8 +49,12 @@ func isUtf8* (x: string{~lit}): bool {. locks: 0 .} =
 
 
 
-func skipWhiteSpaces* (input: string; start: int): int {. locks: 0 .} =
+func skipSpaces* (input: string; start: Natural): Natural {. locks: 0 .} =
   result =
     input[start .. input.high()].toRunes().callZFunc(
-      takeWhile(it.isWhiteSpace())
+      takeWhile(it.unicodeCategory() == ctgZs)
     ).len()
+
+
+func skipSpaces* (input: string): Natural {. locks: 0 .} =
+  result = input.skipSpaces(input.low())
