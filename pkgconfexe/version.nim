@@ -2,7 +2,7 @@ import private/[ fphelper, scanresult, utf8 ]
 
 import pkg/unicodedb
 
-import std/[ strscans, unicode ]
+import std/[ unicode ]
 
 
 
