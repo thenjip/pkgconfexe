@@ -11,7 +11,7 @@ export comparator
 
 
 type
-  VersionInfo* = tuple
+  VersionInfo* = object
     cmp: Comparator
     version: string
 
@@ -28,7 +28,9 @@ func buildModule* (pkg: string): Module {. locks: 0 .} =
 func buildModule* (pkg: string; cmp: Comparator; version: string): Module {.
   locks: 0
 .} =
-  result = Module(pkg: pkg, versionInfo: (cmp: cmp, version: version).some())
+  result = Module(
+    pkg: pkg, versionInfo: VersionInfo(cmp: cmp, version: version).some()
+  )
 
 
 
@@ -100,9 +102,14 @@ func scanModule* (input: string): ScanResult[Module] =
 
 
 
-func module* (input: static[string]; start: static[Natural]): static[Module] =
+func toModule* (input: static[string]; start: static[Natural]): Module =
   result = input.scanModule(start).get()
 
 
-func module* (input: static[string]): static[Module] =
+func toModule* (input: static[string]): Module =
   result = input.scanModule().get()
+
+
+
+static:
+  const m = toModule"a>=6"
