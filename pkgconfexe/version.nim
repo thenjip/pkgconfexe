@@ -1,4 +1,4 @@
-import private/[ fphelper, parseresult, utf8 ]
+import private/[ fphelper, scanresult, utf8 ]
 
 import pkg/unicodedb
 
@@ -25,17 +25,16 @@ func isVersion* (x: string): bool {. locks: 0 .} =
 
 
 
-func parseVersion* (input: string; start: Natural): ParseResult[string] {.
+func scanVersion* (input: string; start: Natural): ScanResult[string] {.
   locks: 0
 .} =
-  result = buildParseResult(
-    start .. (
-      $input[start .. input.high()].toRunes().callZFunc(
-        takeWhile(it.isValid())
-      )
+  result = buildScanResult(
+    start,
+    (
+      $input[start .. input.high()].toRunes().callZFunc(takeWhile(it.isValid()))
     ).len()
   )
 
 
-func parseVersion* (input: string): ParseResult[string] {. locks: 0 .} =
-  result = input.parseVersion(input.low())
+func scanVersion* (input: string): ScanResult[string] {. locks: 0 .} =
+  result = input.scanVersion(input.low())

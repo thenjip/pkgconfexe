@@ -66,7 +66,10 @@ func `$`* (m: Module): string {. locks: 0 .} =
 
 
 func parseModule* (input: string): ParseResult[Module] {. locks: 0 .} =
-  result = input.parsePackage()
+  result = input.parsePackage().flatMap(
+    func (bounds: NonEmptyIndexSlice[Natural]): ParseResult[Module] =
+      result = input[]
+  )
 
 
 

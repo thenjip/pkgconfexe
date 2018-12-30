@@ -1,8 +1,8 @@
-import private/[ fphelper, parseresult, utf8 ]
+import private/[ fphelper, scanresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ strformat, tables, unicode ]
+import std/[ options, strformat, tables, unicode ]
 
 
 
@@ -46,10 +46,6 @@ func isComparator* (x: seq[Rune]): bool {. locks: 0 .} =
   result = ComparatorMap.hasKey(x)
 
 
-func isComparator* (x: string): bool {. locks: 0 .} =
-  result = x.toRunes().isComparator()
-
-
 
 func findComparator (x: seq[Rune]): Option[Comparator] {. locks: 0 .} =
   result =
@@ -59,25 +55,32 @@ func findComparator (x: seq[Rune]): Option[Comparator] {. locks: 0 .} =
       Comparator.none()
 
 
-func parseComparator* (
-  input: string; start: Natural
-): ParseResult[Comparator] {. locks: 0 .} =
-  result =
-    let subStr = input.runeSubStr(start, ComparatorNChars)
-
-    if subStr.toRunes().len() < ComparatorNChars:
-      Comparator.emptyParseResult()
-    else:
-      subStr.findComparator().optionToParseResult(start .. start + subStr.len())
+func findComparator (x: string): Option[Comparator] {. locks: 0 .} =
+  result = x.toRunes().findComparator()
 
 
 #[
   Assumes the input is in UTF-8.
 ]#
-func parseComparator* (input: string): ParseResult[Comparator] {.
+func scanComparator* (input: string; start: Natural): ScanResult[Comparator] {.
   locks: 0
 .} =
-  result = input.parseComparator(input.low())
+  let subStr = input.runeSubStr(start, ComparatorNChars)
+
+  result =
+    if subStr.toRunes().len() < ComparatorNChars:
+      Comparator.emptyScanResult()
+    else:
+      subStr.findComparator().optionToScanResult(start, ComparatorNChars)
+
+
+#[
+  Assumes the input is in UTF-8.
+]#
+func scanComparator* (input: string): ScanResult[Comparator] {.
+  locks: 0
+.} =
+  result = input.scanComparator(input.low())
 
 
 

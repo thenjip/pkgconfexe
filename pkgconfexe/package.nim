@@ -1,8 +1,8 @@
-import private/[ fphelper, parseresult, utf8 ]
+import private/[ fphelper, scanresult, utf8 ]
 
 import pkg/[ unicodedb, zero_functional ]
 
-import std/unicode
+import std/[ unicode ]
 
 
 
@@ -23,17 +23,16 @@ func isPackage* (x: string): bool {. locks: 0 .} =
 
 
 
-func parsePackage* (input: string; start: Natural): ParseResult[string] {.
+func scanPackage* (input: string; start: Natural): ScanResult[string] {.
   locks: 0
 .} =
-  result = buildParseResult(
-    start .. (
-      $input[start .. input.high()].toRunes().callZFunc(
-        takeWhile(it.isValid())
-      )
+  result = buildScanResult(
+    start,
+    (
+      $input[start .. input.high()].toRunes().callZFunc(takeWhile(it.isValid()))
     ).len()
   )
 
 
-func parsePackage* (input: string): ParseResult[string] {. locks: 0 .} =
-  result = input.parsePackage(input.low())
+func scanPackage* (input: string): ScanResult[string] {. locks: 0 .} =
+  result = input.scanPackage(input.low())
