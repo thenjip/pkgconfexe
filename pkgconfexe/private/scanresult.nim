@@ -5,6 +5,8 @@ import std/[ options, strformat, typetraits ]
 type
   NoValueError* = object of Defect
 
+  SeqIndexSlice* = Slice[Natural]
+
   ScanResult* [T] = object
     start: Natural
     n: Natural
@@ -34,11 +36,7 @@ func someScanResult* [T: not string](
 
 
 func emptyScanResult* (T: typedesc): ScanResult[T] {. locks: 0 .} =
-  result =
-    when T is string:
-      ScanResult[T](start: 0, n: 0)
-    else:
-      ScanResult[T](start: 0, n: 0, val: default(T))
+  result = ScanResult[T](start: 0, n: 0)
 
 
 
@@ -61,70 +59,72 @@ func get* [T: string](
       raise newException(NoValueError, "")
 
 
-func get* [T: not string](
-  self: ScanResult[T]
-): tuple[val: T, start: Natural, n: Positive] {.
+func get* [T: not string](self: ScanResult[T]): T {.
   locks: 0, raises: [ NoValueError ]
 .} =
   result =
     if self.isSome():
-      (self.val, self.start, self.n)
+      self.val
     else:
       raise newException(NoValueError, "")
 
 
 
+func getSlice [T](self: ScanResult[T]): SeqIndexSlice {. locks: 0 .} =
+  result = self.start .. Natural(self.start + self.n - 1)
+
+
+
 proc doIfSome* [T: string](
-  self: ScanResult[T]; callback: proc (start: Natural; n: Positive)
+  self: ScanResult[T]; callback: proc (slice: SeqIndexSlice)
 ) =
   if self.isSome():
-    callback(self.start, self.n)
+    callback(self.getSlice())
 
 
 proc doIfSome* [T: not string](
-  self: ScanResult[T]; callback: proc (val: T; start: Natural; n: Positive)
+  self: ScanResult[T]; callback: proc (val: T; slice: SeqIndexSlice)
 ) =
   if self.isSome():
-    callback(self.val, self.start, self.n)
+    callback(self.val, self.getSlice())
 
 
 
 func flatMapOr* [T: string, R](
   self: ScanResult[T];
-  f: func (start: Natural; n: Positive): ScanResult[R];
-  otherwise: ScanResult[R]
+  otherwise: ScanResult[R];
+  f: func (slice: SeqIndexSlice): ScanResult[R]
 ): ScanResult[R] =
   result =
     if self.isSome():
-      f(self.start, self.n)
+      f(self.getSlice())
     else:
       otherwise
 
 
 func flatMapOr* [T: not string, R](
   self: ScanResult[T];
-  f: func (val: T; start: Natural; n: Positive): ScanResult[R];
-  otherwise: ScanResult[R]
+  otherwise: ScanResult[R];
+  f: func (val: T; slice: SeqIndexSlice): ScanResult[R]
 ): ScanResult[R] =
   result =
     if self.isSome():
-      f(self.val, self.start, self.n)
+      f(self.val, self.getSlice())
     else:
       otherwise
 
 
 
 func flatMap* [T: string, R](
-  self: ScanResult[T]; f: func (start: Natural; n: Positive): ScanResult[R]
+  self: ScanResult[T]; f: func (slice: SeqIndexSlice): ScanResult[R]
 ): ScanResult[R] =
-  result = self.flatMapOr(f, R.emptyScanResult())
+  result = self.flatMapOr(R.emptyScanResult(), f)
 
 
 func flatMap* [T: not string, R](
-  self: ScanResult[T];
-  f: func (val: T; start: Natural; n: Positive): ScanResult[R]
+  self: ScanResult[T]; f: func (val: T; slice: SeqIndexSlice): ScanResult[R]
 ): ScanResult[R] =
-  result = self.flatMapOr(f, R.emptyScanResult())
+  result = self.flatMapOr(R.emptyScanResult(), f)
 
 
 
