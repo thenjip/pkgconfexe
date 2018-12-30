@@ -4,10 +4,13 @@ import std/[ options, strformat, typetraits ]
 
 
 
-type ParseResult* [T] = object
-  bounds: IndexSlice[Natural] ## The bounds of the parsed input.
-  when T isnot string:
-    val: T
+type
+  NoValueError* = object of Defect
+
+  ParseResult* [T] = object
+    bounds: IndexSlice[Natural] ## The bounds of the parsed input.
+    when T isnot string:
+      val: T
 
 
 
@@ -55,6 +58,27 @@ func isSome* [T](self: ParseResult[T]): bool {. locks: 0 .} =
 
 func isNone* [T](self: ParseResult[T]): bool {. locks: 0 .} =
   result = self.bounds.isEmpty()
+
+
+
+func get* [T: string](self: ParseResult[T]): NonEmptyIndexSlice[Natural] {.
+  locks: 0, raises: [ NoValueError ]
+.} =
+  result =
+    if self.isSome():
+      self.bounds
+    else:
+      raise newException(NoValueError, "")
+
+
+func get* [T: not string](
+  self: ParseResult[T]
+): (val: T, bounds: NonEmptyIndexSlice[Natural]) {. locks: 0 .} =
+  result =
+    if self.isSome():
+      (self.val, self.bounds)
+    else:
+      raise newException(NoValueError, "")
 
 
 

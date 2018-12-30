@@ -54,4 +54,3 @@ func skipWhiteSpaces* (input: string; start: int): int {. locks: 0 .} =
     input[start .. input.high()].toRunes().callZFunc(
       takeWhile(it.isWhiteSpace())
     ).len()
-
