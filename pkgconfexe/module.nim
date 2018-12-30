@@ -21,11 +21,11 @@ type
 
 
 
-func constructModule* (pkg: string): Module {. locks: 0 .} =
+func buildModule* (pkg: string): Module {. locks: 0 .} =
   result = (pkg: pkg, versionInfo: options.none(VersionInfo))
 
 
-func constructModule* (pkg: string; cmp: Comparator; version: string): Module {.
+func buildModule* (pkg: string; cmp: Comparator; version: string): Module {.
   locks: 0
 .} =
   result = (pkg: pkg, versionInfo: (cmp: cmp, version: version).some())
@@ -66,17 +66,11 @@ func `$`* (m: Module): string {. locks: 0 .} =
 
 
 func parseModule* (input: string): ParseResult[Module] {. locks: 0 .} =
-  result = input.parsePackage().flatMap(
-    (n) -> ParseResult[Module] =>
-      input[n .. input.high()].parseComparator().flatMapOr(
-        (cmp, n) -> ParseResult[Module] => ,
-        parseresult.some(input[input.low() .. n].constructModule())
-      )
-  )
+  result = input.parsePackage()
 
 
 
 func module* (x: static[string]): Module {.
-  locks: 0, raises: [ UnpackError ]
+  locks: 0, raises: [ NoValueError ]
 .} =
-  result = x.parseModule(x.low()).get()
+  result = x.parseModule(x.low()).get().val

@@ -25,7 +25,17 @@ func isVersion* (x: string): bool {. locks: 0 .} =
 
 
 
+func parseVersion* (input: string; start: Natural): ParseResult[string] {.
+  locks: 0
+.} =
+  result = buildParseResult(
+    start .. (
+      $input[start .. input.high()].toRunes().callZFunc(
+        takeWhile(it.isValid())
+      )
+    ).len()
+  )
+
+
 func parseVersion* (input: string): ParseResult[string] {. locks: 0 .} =
-  result = (
-    input.low() .. ($input.toRunes().callZFunc(takeWhile(it.isValid()))).len()
-  ).buildParseResult()
+  result = input.parseVersion(input.low())

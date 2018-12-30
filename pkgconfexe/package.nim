@@ -23,7 +23,17 @@ func isPackage* (x: string): bool {. locks: 0 .} =
 
 
 
+func parsePackage* (input: string; start: Natural): ParseResult[string] {.
+  locks: 0
+.} =
+  result = buildParseResult(
+    start .. (
+      $input[start .. input.high()].toRunes().callZFunc(
+        takeWhile(it.isValid())
+      )
+    ).len()
+  )
+
+
 func parsePackage* (input: string): ParseResult[string] {. locks: 0 .} =
-  result = (
-    input.low() .. ($input.toRunes().callZFunc(takeWhile(it.isValid()))).len()
-  ).buildParseResult()
+  result = input.parsePackage(input.low())

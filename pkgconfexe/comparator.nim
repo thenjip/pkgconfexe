@@ -2,7 +2,7 @@ import private/[ fphelper, parseresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ options, strformat, tables, unicode ]
+import std/[ strformat, tables, unicode ]
 
 
 
@@ -59,26 +59,25 @@ func findComparator (x: seq[Rune]): Option[Comparator] {. locks: 0 .} =
       Comparator.none()
 
 
-func findComparator (input: string; start: Natural): ParseResult[Comparator] {.
-  locks: 0
-.} =
-  let slice = start .. start + ComparatorNChars
+func parseComparator* (
+  input: string; start: Natural
+): ParseResult[Comparator] {. locks: 0 .} =
+  result =
+    let subStr = input.runeSubStr(start, ComparatorNChars)
 
-  result = input[slice].toRunes().findComparator().optionToParseResult(slice)
+    if subStr.toRunes().len() < ComparatorNChars:
+      Comparator.emptyParseResult()
+    else:
+      subStr.findComparator().optionToParseResult(start .. start + subStr.len())
 
 
 #[
   Assumes the input is in UTF-8.
-  All the comparators are internally encoded in ASCII.
 ]#
 func parseComparator* (input: string): ParseResult[Comparator] {.
   locks: 0
 .} =
-  result =
-    if input.len() < ComparatorNChars:
-      Comparator.emptyParseResult()
-    else:
-      input.findComparator(input.low())
+  result = input.parseComparator(input.low())
 
 
 
