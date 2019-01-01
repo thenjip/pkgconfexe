@@ -1,4 +1,4 @@
-import fphelper, utf8
+import zfunchelper, utf8
 
 import pkg/[ unicodedb, zero_functional ]
 
@@ -62,22 +62,20 @@ else:
 
 
 
-func checkRunes (x: string): bool {. locks: 0 .} =
-  let (lastRune, lastRuneLen) = x.lastRune(x.high())
-
-  result =
-    lastRune notin ForbiddenLastChars and
-    x[x.low() .. x.high() - lastRuneLen].toRunes().callZFunc(
-      all(it notin ReservedChars and it.unicodeCategory() != ctgCc)
+func checkRunes (x: string; lastRune: tuple[r: Rune, len: int]): bool {.
+  locks: 0
+.} =
+  lastRune.r notin ForbiddenLastChars and
+    x[x.low() .. x.len() - lastRune.len].toRunes().zeroFunc(
+      all(it notin ReservedChars and not it.isControl())
     )
 
 
 func isFileName* (x: string): bool {. locks: 0 .} =
-  result =
-    x.len() > 0 and
+  x.len() > 0 and
     x.runeAt(x.low()) != ShortOptionPrefix and
-    x.checkRunes() and
-    ReservedName.callZFunc(all($it != x))
+    x.checkRunes(x.lastRune(x.high())) and
+    ReservedName.zeroFunc(all($it != x))
 
 
 

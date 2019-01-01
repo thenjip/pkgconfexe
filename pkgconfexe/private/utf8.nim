@@ -1,60 +1,79 @@
-import fphelper
+import zfunchelper
 
 import pkg/[ unicodedb, zero_functional ]
 
-import std/unicode
+import std/[ unicode ]
 
+
+
+func firstRune* (s: string): Rune {. locks: 0 .} =
+  s.runeAt(s.low())
 
 
 func toRune* (c: char): Rune {. locks: 0 .} =
-  let str = $c
-  result = str.runeAt(str.low())
+  ($c).firstRune()
 
 
 
 func `==`* (r: Rune; c: char): bool {. locks: 0 .} =
-  let str = $c
-  result = r == str.runeAt(str.low())
+  r == ($c).firstRune()
 
 
 func `==`* (c: char; r: Rune): bool {. locks: 0 .} =
-  result = r == c
+  r == c
 
 
 func `!=`* (r: Rune; c: char): bool {. locks: 0 .} =
-  result = not (r == c)
+  not (r == c)
 
 
 func `!=`* (c: char; r: Rune): bool {. locks: 0 .} =
-  result = r != c
+  r != c
 
+
+
+func firstChar (s: string): char {. locks: 0 .} =
+  s[s.low()]
 
 
 func `in`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
-  let str = $r
-  result = str[str.low()] in s
+  r.toUTF8().firstChar() in s
 
 
 func `notin`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
-  result = not (r in s)
+  not (r in s)
 
 
 
 func isUtf8* (x: string{lit}): bool {. locks: 0 .} =
-  result = true
+  true
 
 
 func isUtf8* (x: string{~lit}): bool {. locks: 0 .} =
-  result = x.validateUtf8() == -1
+  x.validateUtf8() == -1
+
+
+
+## Unicdoe control character.
+func isControl* (r: Rune): bool {. locks: 0 .} =
+  r.unicodeCategory() == ctgCc
+
+
+## We consider ``'\t'`` as a space unlike Unicode for string scanning purposes.
+func isSpace* (r: Rune): bool {. locks: 0 .} =
+  r.unicodeCategory() == ctgZs or r == '\t'
 
 
 
 func skipSpaces* (input: string; start: Natural): Natural {. locks: 0 .} =
-  result =
-    input[start .. input.high()].toRunes().callZFunc(
-      takeWhile(it.unicodeCategory() == ctgZs)
-    ).len()
+  if start >= input.len():
+    0
+  else:
+    input[start .. input.high()].toRunes().zeroFunc(
+      takeWhile(it.isSpace())
+    ).`$`().len()
 
 
+# Skip spaces starting at ``input.low()``.
 func skipSpaces* (input: string): Natural {. locks: 0 .} =
-  result = input.skipSpaces(input.low())
+  input.skipSpaces(input.low())

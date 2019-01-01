@@ -1,4 +1,4 @@
-import fphelper, utf8
+import zfunchelper, utf8
 
 import pkg/[ unicodedb, unicodeplus, zero_functional ]
 
@@ -6,7 +6,7 @@ import std/unicode except isAlpha
 
 
 
-# 'Identifier' means 'Environment variable identifier'.
+# 'Identifier' means 'environment variable identifier'.
 
 
 
@@ -16,14 +16,15 @@ const
 
 
 
-func checkRunes (x: string): bool {. locks: 0 .} =
-  let
-    firstRune = x.runeAt(x.low())
-    firstRuneLen = x.runeLenAt(x.low())
+func checkFirstRune (r: Rune): bool {. locks: 0 .} =
+  r in AllowedCharOthers or r.isAlpha()
 
-  result =
-    (firstRune in AllowedCharOthers or firstRune.isAlpha()) and
-    x[x.low() + firstRuneLen .. x.high()].toRunes().callZFunc(
+
+func checkRunes (x: string; firstRune: Rune; firstRuneLen: Positive): bool {.
+  locks: 0
+.} =
+  firstRune.checkFirstRune() and
+    x[x.low() + firstRuneLen .. x.high()].toRunes().zeroFunc(
       all(
         it in AllowedCharOthers or
         it.unicodeCategory() in AllowedOtherCharCategories
@@ -32,4 +33,4 @@ func checkRunes (x: string): bool {. locks: 0 .} =
 
 
 func isIdentifier* (x: string): bool {. locks: 0 .} =
-  result = x.len() > 0 and x.checkRunes()
+  x.len() > 0 and x.checkRunes(x.firstRune(), x.runeLenAt(x.low()))

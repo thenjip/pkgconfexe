@@ -1,8 +1,8 @@
-import pkgconfexe/private/identifier
+import pkgconfexe/private/[ identifier ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
-import std/unittest
+import std/[ unittest ]
 
 
 

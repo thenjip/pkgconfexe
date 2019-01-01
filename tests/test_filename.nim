@@ -1,8 +1,8 @@
-import pkgconfexe/private/[ filename, fphelper ]
+import pkgconfexe/private/[ filename, zfunchelper ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
-import std/[ os, macros, sequtils, unittest ]
+import std/[ os, sequtils, unittest ]
 
 
 

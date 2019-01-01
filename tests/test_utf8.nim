@@ -1,8 +1,8 @@
-import pkgconfexe/private/utf8
+import pkgconfexe/private/[ utf8 ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
-import std/[ strscans, unicode, unittest ]
+import std/[ unicode, unittest ]
 
 
 
@@ -38,11 +38,39 @@ suite "utf8":
       SomeStr.isUtf8()
 
 
-  test "skipWhiteSpaces":
-    const
-      Input = " \n\t "
-      NoWSInput = "abc"
+  test "isControl":
+    [ '\n', '\0', '\a', '\r', '\t' ].zfun:
+      foreach:
+        check:
+          it.toRune().isControl()
 
-    check:
-      Input.skipWhiteSpaces(Input.low()) == Input.len()
-      NoWSInput.skipWhiteSpaces(NoWSInput.low()) == 0
+    [ 'a', ' ', '1', '\\' ].zfun:
+      foreach:
+        check:
+          not it.toRune().isControl()
+
+
+  test "isSpace":
+    [ ' ', '\t' ].zfun:
+      foreach:
+        check:
+          it.toRune().isSpace()
+
+    [ '\n', '\0', '\a', '\r' ].zfun:
+      foreach:
+        check:
+          not it.toRune().isSpace()
+
+
+  test "skipWhiteSpaces":
+    [
+      ("", 0),
+      ("abc", 0),
+      (" abc", 1),
+      (" a bc", 1),
+      (" \t abc", 3),
+      (" \nabc", 1)
+    ].zfun:
+      foreach:
+        check:
+          it[0].skipSpaces() == it[1]

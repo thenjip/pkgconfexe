@@ -1,4 +1,5 @@
 const Tests = [
+  "scanresult",
   "utf8",
   "identifier",
   "filename",
