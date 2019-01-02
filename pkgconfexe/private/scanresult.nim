@@ -1,6 +1,9 @@
-import seqindexslice
+import functiontypes, seqindexslice
 
 import std/[ options, sugar ]
+
+
+export options
 
 
 
@@ -75,9 +78,11 @@ func sliceAndVal* [T: not string](
 
 
 
-func toOptionScanResult* [T: not string](
+func toOptionScanResult* [T: not string and not ScanResult[any]](
   opt: Option[T]; start: Natural; n: Positive
 ): Option[ScanResult[T]] {. locks: 0 .} =
   opt.flatMap(
-    (val: T) -> Option[ScanResult[T]] => someScanResult(start, n, val)
+    UnaryFunctionClosure(
+      (val: T) -> Option[ScanResult[T]] => someScanResult(start, n, val)
+    )
   )
