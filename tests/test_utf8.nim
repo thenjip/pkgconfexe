@@ -1,4 +1,4 @@
-import pkgconfexe/private/[ functiontypes, scanresult, utf8 ]
+import pkgconfexe/private/[ functiontypes, utf8, seqindexslice ]
 
 import pkg/[ unicodeplus, zero_functional ]
 

@@ -1,4 +1,4 @@
-import functiontypes, scanresult
+import functiontypes, seqindexslice
 
 import pkg/[ unicodedb ]
 
