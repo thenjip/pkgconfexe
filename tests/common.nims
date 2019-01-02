@@ -1,4 +1,5 @@
 const Tests = [
+  "zfunchelper",
   "scanresult",
   "utf8",
   "identifier",

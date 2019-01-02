@@ -1,4 +1,4 @@
-import pkgconfexe/private/[ filename, zfunchelper ]
+import pkgconfexe/private/[ filename ]
 
 import pkg/[ zero_functional ]
 

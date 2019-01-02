@@ -1,1 +1,2 @@
-type Predicate* [T] = func (t: T): bool {. locks: 0 .}
+type
+  Predicate* [T] = func (t: T): bool {. locks: 0 .}
