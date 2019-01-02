@@ -27,9 +27,12 @@ func isVersion* (x: string): bool {. locks: 0 .} =
 func scanVersion* (input: string; start: Natural): Option[ScanResult[string]] {.
   locks: 0
 .} =
-  buildScanResult(
-    start, input.countValidBytes(start .. input.high().Natural, isValid)
-  )
+  if start >= input.len():
+    string.emptyScanResult()
+  else:
+    buildScanResult(
+      start, input.countValidBytes(start .. input.high().Natural, isValid)
+    )
 
 
 func scanVersion* (input: string): Option[ScanResult[string]] {. locks: 0 .} =

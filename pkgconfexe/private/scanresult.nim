@@ -78,11 +78,34 @@ func sliceAndVal* [T: not string](
 
 
 
-func toOptionScanResult* [T: not string and not ScanResult[any]](
-  opt: Option[T]; start: Natural; n: Positive
+func toOptionScanResult* [T: not string](
+  o: Option[T]; start: Natural; n: Positive
 ): Option[ScanResult[T]] {. locks: 0 .} =
-  opt.flatMap(
+  o.flatMap(
     UnaryFunctionClosure(
       (val: T) -> Option[ScanResult[T]] => someScanResult(start, n, val)
     )
   )
+
+
+
+func flatMap* [R](
+  o: Option[ScanResult[string]];
+  f: UnaryFunctionClosure[SeqIndexSlice, Option[ScanResult[R]]]
+): Option[ScanResult[R]] {. locks: 0 .} =
+  if o.isSome():
+    o.unsafeGet().slice().f()
+  else:
+    ScanResult[R].none()
+
+
+func flatMap* [T: not string, R](
+  o: Option[ScanResult[T]];
+  f: BinaryFunctionClosure[SeqIndexSlice, T, Option[ScanResult[R]]]
+): Option[ScanResult[R]] {. locks: 0 .} =
+  if o.isSome():
+    ((sr: ScanResult[T]) -> ScanResult[R] => sr.slice().f(sr.value()))(
+      o.unsafeGet()
+    )
+  else:
+    ScanResult[R].none()

@@ -59,9 +59,12 @@ func findComparator (x: seq[Rune]): Option[Comparator] {. locks: 0 .} =
 func scanComparator* (
   input: string; start: Natural
 ): Option[ScanResult[Comparator]] {. locks: 0 .} =
-  input.runeSubStr(
-    start, ComparatorNChars
-  ).toRunes().findComparator().toOptionScanResult(start, ComparatorNChars)
+  if start >= input.len():
+    Comparator.emptyScanResult()
+  else:
+    input.runeSubStr(
+      start, ComparatorNChars
+    ).toRunes().findComparator().toOptionScanResult(start, ComparatorNChars)
 
 
 #[
@@ -70,7 +73,7 @@ func scanComparator* (
 func scanComparator* (input: string): Option[ScanResult[Comparator]] {.
   locks: 0
 .} =
-  result = input.scanComparator(input.low())
+  input.scanComparator(input.low())
 
 
 

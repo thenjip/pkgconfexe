@@ -27,9 +27,12 @@ func isPackage* (x: string): bool {. locks: 0 .} =
 func scanPackage* (input: string; start: Natural): Option[ScanResult[string]] {.
   locks: 0
 .} =
-  buildScanResult(
-    start, input.countValidBytes(start .. input.high().Natural, isValid)
-  )
+  if start >= input.len():
+    string.emptyScanResult()
+  else:
+    buildScanResult(
+      start, input.countValidBytes(start .. input.high().Natural, isValid)
+    )
 
 
 func scanPackage* (input: string): Option[ScanResult[string]] {. locks: 0 .} =
