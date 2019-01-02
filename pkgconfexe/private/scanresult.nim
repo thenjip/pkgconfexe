@@ -1,11 +1,6 @@
-import functiontypes, seqindexslice
+import seqindexslice
 
-import pkg/[ maybe ]
-
-import std/[ sugar ]
-
-
-export maybe
+import std/[ options, sugar ]
 
 
 
@@ -17,29 +12,29 @@ type ScanResult* [T] = object
 
 
 
-func someScanResult* (start: Natural; n: Positive): Maybe[ScanResult[string]] {.
+func someScanResult* (start: Natural; n: Positive): Option[ScanResult[string]] {.
   locks: 0
 .} =
-  ScanResult[string](start: start, n: n).just()
+  ScanResult[string](start: start, n: n).some()
 
 
 func someScanResult* [T: not string](
   start: Natural; n: Positive; val: T
-): Maybe[ScanResult[T]] {. locks: 0 .} =
-  ScanResult[T](start: start, n: n, val: val).just()
+): Option[ScanResult[T]] {. locks: 0 .} =
+  ScanResult[T](start: start, n: n, val: val).some()
 
 
 
-func emptyScanResult* [T](): Maybe[ScanResult[T]] {. locks: 0 .} =
-  ScanResult[T].nothing()
+func emptyScanResult* [T](): Option[ScanResult[T]] {. locks: 0 .} =
+  ScanResult[T].none()
 
 
-func emptyScanResult* (T: typedesc): Maybe[ScanResult[T]] {. locks: 0 .} =
+func emptyScanResult* (T: typedesc): Option[ScanResult[T]] {. locks: 0 .} =
   emptyScanResult[T]()
 
 
 
-func buildScanResult* (start: Natural; n: Natural): Maybe[ScanResult[string]] {.
+func buildScanResult* (start: Natural; n: Natural): Option[ScanResult[string]] {.
   locks: 0
 .} =
   if n == Natural.low():
@@ -80,7 +75,9 @@ func sliceAndVal* [T: not string](
 
 
 
-func toMaybeScanResult* [T: not string](
-  m: Maybe[T: not ScanResult[any]]; start: Natural; n: Positive
-): Maybe[ScanResult[T]] {. locks: 0 .} =
-  m >>= (val: T) -> Maybe[ScanResult[T]] => someScanResult(start, n, val)
+func toOptionScanResult* [T: not string](
+  opt: Option[T]; start: Natural; n: Positive
+): Option[ScanResult[T]] {. locks: 0 .} =
+  opt.flatMap(
+    (val: T) -> Option[ScanResult[T]] => someScanResult(start, n, val)
+  )

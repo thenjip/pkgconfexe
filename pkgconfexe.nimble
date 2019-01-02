@@ -4,7 +4,6 @@ description = "Wrapper to query information from the pkgconf command line tool"
 license = "MIT"
 
 requires "nim >= 0.19.9",
-  "maybe >= 2.2",
   "unicodedb >= 0.6.0",
   "unicodeplus >= 0.4.0",
   "zero_functional >= 0.2.0"
