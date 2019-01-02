@@ -1,4 +1,4 @@
-import functiontypes, seqindexslice
+import functiontypes, optional, seqindexslice
 
 import std/[ options, sugar ]
 
@@ -15,9 +15,9 @@ type ScanResult* [T] = object
 
 
 
-func someScanResult* (start: Natural; n: Positive): Option[ScanResult[string]] {.
-  locks: 0
-.} =
+func someScanResult* (
+  start: Natural; n: Positive
+): Option[ScanResult[string]] {. locks: 0 .} =
   ScanResult[string](start: start, n: n).some()
 
 
@@ -37,9 +37,9 @@ func emptyScanResult* (T: typedesc): Option[ScanResult[T]] {. locks: 0 .} =
 
 
 
-func buildScanResult* (start: Natural; n: Natural): Option[ScanResult[string]] {.
-  locks: 0
-.} =
+func buildScanResult* (
+  start: Natural; n: Natural
+): Option[ScanResult[string]] {. locks: 0 .} =
   if n == Natural.low():
     string.emptyScanResult()
   else:

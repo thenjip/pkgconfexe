@@ -1,6 +1,6 @@
-import private/[ fphelper, scanresult, utf8 ]
+import private/[ scanresult, seqindexslice, utf8 ]
 
-import pkg/[ unicodedb, zero_functional ]
+import pkg/[ unicodedb ]
 
 import std/[ unicode ]
 
@@ -14,25 +14,23 @@ const
 
 
 func isValid* (r: Rune): bool {. locks: 0 .} =
-  result = r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
+  r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
 
 
 
 func isPackage* (x: string): bool {. locks: 0 .} =
-  result = x.len() > 0 and x.toRunes().callZFunc(all(it.isValid()))
+  x.len() > 0 and
+    x.countValidBytes(seqIndexSlice(x.low(), x.high()), isValid) == x.len()
 
 
 
-func scanPackage* (input: string; start: Natural): ScanResult[string] {.
+func scanPackage* (input: string; start: Natural): Option[ScanResult[string]] {.
   locks: 0
 .} =
-  result = buildScanResult(
-    start,
-    (
-      $input[start .. input.high()].toRunes().callZFunc(takeWhile(it.isValid()))
-    ).len()
+  buildScanResult(
+    start, input.countValidBytes(start .. input.high().Natural, isValid)
   )
 
 
-func scanPackage* (input: string): ScanResult[string] {. locks: 0 .} =
-  result = input.scanPackage(input.low())
+func scanPackage* (input: string): Option[ScanResult[string]] {. locks: 0 .} =
+  input.scanPackage(input.low())

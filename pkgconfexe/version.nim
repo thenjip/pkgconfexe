@@ -1,6 +1,6 @@
-import private/[ fphelper, scanresult, utf8 ]
+import private/[ scanresult, seqindexslice, utf8 ]
 
-import pkg/unicodedb
+import pkg/[ unicodedb ]
 
 import std/[ unicode ]
 
@@ -14,27 +14,23 @@ const
 
 
 func isValid (r: Rune): bool {. locks: 0 .} =
-  result = r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
+  r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
 
 
 
 func isVersion* (x: string): bool {. locks: 0 .} =
-  result =
-    x.len() > 0 and
-    x.toRunes().callZFunc(all(it.isValid()))
+  x.len() > 0 and
+    x.countValidBytes(seqIndexSlice(x.low(), x.high()), isValid) == x.len()
 
 
 
-func scanVersion* (input: string; start: Natural): ScanResult[string] {.
+func scanVersion* (input: string; start: Natural): Option[ScanResult[string]] {.
   locks: 0
 .} =
-  result = buildScanResult(
-    start,
-    (
-      $input[start .. input.high()].toRunes().callZFunc(takeWhile(it.isValid()))
-    ).len()
+  buildScanResult(
+    start, input.countValidBytes(start .. input.high().Natural, isValid)
   )
 
 
-func scanVersion* (input: string): ScanResult[string] {. locks: 0 .} =
-  result = input.scanVersion(input.low())
+func scanVersion* (input: string): Option[ScanResult[string]] {. locks: 0 .} =
+  input.scanVersion(input.low())

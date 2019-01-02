@@ -1,8 +1,8 @@
-import private/[ fphelper, scanresult, utf8 ]
+import private/[ scanresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ options, strformat, tables, unicode ]
+import std/[ options, strformat, sugar, tables, unicode ]
 
 
 
@@ -14,11 +14,9 @@ type Comparator* {. pure .} = enum
 
 
 const
-  ComparatorMap* = toTable(
+  ComparatorMap* = toOrderedTable(
     Comparator-->map(
-      (func (c: Comparator): (seq[Rune], Comparator) =
-        result = (($it).toRunes(), it)
-      )(it)
+      ((c: Comparator) -> (seq[Rune], Comparator) => (($c).toRunes(), c))(it)
     )
   )
 
@@ -33,51 +31,43 @@ const
 
 
 func default* (T: typedesc[Comparator]): T {. locks: 0 .} =
-  result = T.GreaterEq
+  T.GreaterEq
 
 
 
 func option* (c: Comparator): string {. locks: 0 .} =
-  result = ComparatorOptions[c]
+  ComparatorOptions[c]
 
 
 
 func isComparator* (x: seq[Rune]): bool {. locks: 0 .} =
-  result = ComparatorMap.hasKey(x)
+  ComparatorMap.hasKey(x)
 
 
 
 func findComparator (x: seq[Rune]): Option[Comparator] {. locks: 0 .} =
-  result =
-    if x.isComparator():
-      ComparatorMap[x].some()
-    else:
-      Comparator.none()
+  if x.len() == ComparatorNChars and x in ComparatorMap:
+    ComparatorMap[x].some()
+  else:
+    Comparator.none()
 
-
-func findComparator (x: string): Option[Comparator] {. locks: 0 .} =
-  result = x.toRunes().findComparator()
 
 
 #[
   Assumes the input is in UTF-8.
 ]#
-func scanComparator* (input: string; start: Natural): ScanResult[Comparator] {.
-  locks: 0
-.} =
-  let subStr = input.runeSubStr(start, ComparatorNChars)
-
-  result =
-    if subStr.toRunes().len() < ComparatorNChars:
-      Comparator.emptyScanResult()
-    else:
-      subStr.findComparator().optionToScanResult(start, ComparatorNChars)
+func scanComparator* (
+  input: string; start: Natural
+): Option[ScanResult[Comparator]] {. locks: 0 .} =
+  input.runeSubStr(
+    start, ComparatorNChars
+  ).toRunes().findComparator().toOptionScanResult(start, ComparatorNChars)
 
 
 #[
   Assumes the input is in UTF-8.
 ]#
-func scanComparator* (input: string): ScanResult[Comparator] {.
+func scanComparator* (input: string): Option[ScanResult[Comparator]] {.
   locks: 0
 .} =
   result = input.scanComparator(input.low())
