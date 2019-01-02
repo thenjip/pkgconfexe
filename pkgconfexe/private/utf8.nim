@@ -1,33 +1,49 @@
-import zfunchelper
+import functiontypes, scanresult
 
-import pkg/[ unicodedb, zero_functional ]
+import pkg/[ unicodedb ]
 
 import std/[ unicode ]
 
 
 
-func firstRune* (s: string): Rune {. locks: 0 .} =
-  s.runeAt(s.low())
-
-
-func toRune* (c: char): Rune {. locks: 0 .} =
-  ($c).firstRune()
+## The ASCII subset of Nim's char type.
+type AsciiChar* = range[char.low() .. int8.high().char]
 
 
 
-func `==`* (r: Rune; c: char): bool {. locks: 0 .} =
-  r == ($c).firstRune()
+func convertRuneInfo* (x: tuple[r: Rune, len: int]): (Rune, Positive) {.
+  locks: 0
+.} =
+  (x.r, x.len.Positive)
 
 
-func `==`* (c: char; r: Rune): bool {. locks: 0 .} =
+
+func firstRune* (s: string): tuple[r: Rune, len: Positive] {. locks: 0 .} =
+  var i = s.low()
+
+  s.fastRuneAt(i, result.r, true)
+  result.len = i
+
+
+
+func toRune* (c: AsciiChar): Rune {. locks: 0 .} =
+  ($c).firstRune().r
+
+
+
+func `==`* (r: Rune; c: AsciiChar): bool {. locks: 0 .} =
+  r == c.toRune()
+
+
+func `==`* (c: AsciiChar; r: Rune): bool {. locks: 0 .} =
   r == c
 
 
-func `!=`* (r: Rune; c: char): bool {. locks: 0 .} =
+func `!=`* (r: Rune; c: AsciiChar): bool {. locks: 0 .} =
   not (r == c)
 
 
-func `!=`* (c: char; r: Rune): bool {. locks: 0 .} =
+func `!=`* (c: AsciiChar; r: Rune): bool {. locks: 0 .} =
   r != c
 
 
@@ -36,11 +52,11 @@ func firstChar (s: string): char {. locks: 0 .} =
   s[s.low()]
 
 
-func `in`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
+func `in`* (r: Rune; s: set[AsciiChar]): bool {. locks: 0 .} =
   r.toUTF8().firstChar() in s
 
 
-func `notin`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
+func `notin`* (r: Rune; s: set[AsciiChar]): bool {. locks: 0 .} =
   not (r in s)
 
 
@@ -65,13 +81,34 @@ func isSpace* (r: Rune): bool {. locks: 0 .} =
 
 
 
+##[
+  Returns the number of bytes that verify predicate ``pred``
+  starting at index ``slice.a``.
+  Stops verifying as soon as the predicate is not verified.
+  One or more bytes are taken when verifying the predicate.
+]##
+func countValidBytes* (
+  input: string; slice: SeqIndexSlice; pred: Predicate[Rune]
+): Natural {. locks: 0 .} =
+  result = slice.a
+
+  while result < slice.len():
+    let r = input.runeAt(result)
+
+    if not r.pred():
+      break
+
+    result += r.size()
+
+  result -= slice.a
+
+
+
 func skipSpaces* (input: string; start: Natural): Natural {. locks: 0 .} =
-  if start >= input.len():
-    0
+  if input.len() > 0:
+    input.countValidBytes(start .. input.high().Natural, isSpace)
   else:
-    input[start .. input.high()].toRunes().zeroFunc(
-      takeWhile(it.isSpace())
-    ).`$`().len()
+    0
 
 
 # Skip spaces starting at ``input.low()``.

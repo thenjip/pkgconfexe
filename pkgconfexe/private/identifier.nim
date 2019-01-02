@@ -1,6 +1,6 @@
-import zfunchelper, utf8
+import scanresult, utf8
 
-import pkg/[ unicodedb, unicodeplus, zero_functional ]
+import pkg/[ unicodedb, unicodeplus ]
 
 import std/unicode except isAlpha
 
@@ -20,17 +20,21 @@ func checkFirstRune (r: Rune): bool {. locks: 0 .} =
   r in AllowedCharOthers or r.isAlpha()
 
 
-func checkRunes (x: string; firstRune: Rune; firstRuneLen: Positive): bool {.
+func checkOtherRune (r: Rune): bool {. locks: 0 .} =
+  r in AllowedCharOthers or r.unicodeCategory() in AllowedOtherCharCategories
+
+
+
+func checkRunes (x: string; firstRune: tuple[r: Rune, len: Positive]): bool {.
   locks: 0
 .} =
-  firstRune.checkFirstRune() and
-    x[x.low() + firstRuneLen .. x.high()].toRunes().zeroFunc(
-      all(
-        it in AllowedCharOthers or
-        it.unicodeCategory() in AllowedOtherCharCategories
-      )
-    )
+  firstRune.r.checkFirstRune() and
+    countValidBytes(
+      x,
+      seqIndexSlice(x.low() + firstRune.len, x.high()),
+      checkOtherRune
+    ) == x.len() - firstRune.len
 
 
 func isIdentifier* (x: string): bool {. locks: 0 .} =
-  x.len() > 0 and x.checkRunes(x.firstRune(), x.runeLenAt(x.low()))
+  x.len() > 0 and x.checkRunes(x.firstRune())

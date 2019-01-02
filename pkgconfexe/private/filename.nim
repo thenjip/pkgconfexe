@@ -1,9 +1,9 @@
-import zfunchelper, utf8
+import scanresult, utf8, zfunchelper
 
-import pkg/[ unicodedb, zero_functional ]
+import pkg/[ unicodedb ]
 
 from std/os import AltSep, Curdir, DirSep, ParDir, PathSep
-import std/[ strutils, unicode ]
+import std/[ unicode ]
 
 
 
@@ -62,19 +62,24 @@ else:
 
 
 
-func checkRunes (x: string; lastRune: tuple[r: Rune, len: int]): bool {.
+## Last rune of input excluded.
+func isValid (r: Rune): bool {. locks: 0 .} =
+  r notin ReservedChars and not r.isControl()
+
+
+func checkRunes (x: string; lastRune: tuple[r: Rune, len: Positive]): bool {.
   locks: 0
 .} =
   lastRune.r notin ForbiddenLastChars and
-    x[x.low() .. x.len() - lastRune.len].toRunes().zeroFunc(
-      all(it notin ReservedChars and not it.isControl())
-    )
+    x.countValidBytes(
+      seqIndexSlice(x.low(), x.high() - lastRune.len), isValid
+    ) == x.len() - lastRune.len
 
 
 func isFileName* (x: string): bool {. locks: 0 .} =
   x.len() > 0 and
     x.runeAt(x.low()) != ShortOptionPrefix and
-    x.checkRunes(x.lastRune(x.high())) and
+    x.checkRunes(x.lastRune(x.high()).convertRuneInfo()) and
     ReservedName.zeroFunc(all($it != x))
 
 

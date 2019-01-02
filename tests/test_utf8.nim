@@ -1,12 +1,41 @@
-import pkgconfexe/private/[ utf8 ]
+import pkgconfexe/private/[ functiontypes, scanresult, utf8 ]
 
-import pkg/[ zero_functional ]
+import pkg/[ unicodeplus, zero_functional ]
 
-import std/[ unicode, unittest ]
+import std/unicode except isUpper
+import std/[ sugar, unittest ]
 
 
 
 suite "utf8":
+  test "AsciiChar":
+    [ '\127', '\x03', '\0', '\t', '6' ].zfun:
+      foreach:
+        check:
+          it in { AsciiChar.low() .. AsciiChar.high() }
+    [ '\xff', '\x80', '\x9A' ].zfun:
+      foreach:
+        check:
+          it isnot AsciiChar
+
+
+
+  test "firstRune":
+    type TestData = tuple[data: string, expected: (Rune, Positive)]
+
+    [
+      (" p", (" ".runeAt(0), 1.Positive)),
+      ("=mdv", ("=".runeAt(0), 1.Positive)),
+      ("éf", ("é".runeAt(0), 2.Positive))
+    ].zfun:
+      map:
+        it.TestData
+      foreach:
+        check:
+          it.data.firstRune() == it.expected
+
+
+
   test "RuneEqualsChar":
     const
       SomeString = "a"
@@ -25,17 +54,15 @@ suite "utf8":
     SomeCharSet.zfun:
       foreach:
         check:
-          ($it).runeAt(0) in SomeCharSet
+          it.toRune() in SomeCharSet
 
-    const NotInStr = "è"
-    check:
-      NotInStr.runeAt(NotInStr.low()) notin SomeCharSet
 
 
   test "isUtf8":
     const SomeStr = "æþ“¢ß@µŋøŧħ←đ»ŋħß“#{`|'àdop*µ §^ïŁªÐΩ§ºŁª¢§Ω§ÐÐŦ¥↑ØÞ®©‘’"
     check:
       SomeStr.isUtf8()
+
 
 
   test "isControl":
@@ -62,15 +89,54 @@ suite "utf8":
           not it.toRune().isSpace()
 
 
-  test "skipWhiteSpaces":
+
+  test "countValidBytes":
+    type TestData = tuple
+      data: tuple[
+        input: string,
+        slice: SeqIndexSlice,
+        pred: Predicate[Rune]
+      ]
+      expected: Natural
+
     [
-      ("", 0),
-      ("abc", 0),
-      (" abc", 1),
-      (" a bc", 1),
-      (" \t abc", 3),
-      (" \nabc", 1)
+      (
+        (
+          "abcd", seqIndexSlice(0, 4), Predicate[Rune]((r: Rune) => r.isDigit())
+        ),
+        0.Natural
+      ),
+      (
+        (
+          "ALP*64dfD",
+          seqIndexSlice(1, 8),
+          Predicate[Rune]((r: Rune) => r.isUpper())
+        ),
+        2.Natural
+      )
     ].zfun:
+      map:
+        it.TestData
       foreach:
         check:
-          it[0].skipSpaces() == it[1]
+          it.data.input.countValidBytes(it.data.slice, it.data.pred) ==
+            it.expected
+
+
+
+  test "skipWhiteSpaces":
+    type TestData = tuple[data: string, expected: Natural]
+
+    [
+      ("", 0.Natural),
+      ("abc", 0.Natural),
+      (" abc", 1.Natural),
+      (" a bc", 1.Natural),
+      (" \t abc", 3.Natural),
+      (" \nabc", 1.Natural)
+    ].zfun:
+      map:
+        it.TestData
+      foreach:
+        check:
+          it.data.skipSpaces() == it.expected
