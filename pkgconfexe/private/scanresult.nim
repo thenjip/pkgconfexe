@@ -1,6 +1,6 @@
 import functiontypes, optional, seqindexslice
 
-import std/[ options, sugar ]
+import std/[ options, strformat, sugar ]
 
 
 export options
@@ -89,23 +89,52 @@ func toOptionScanResult* [T: not string](
 
 
 
+func flatMapOr* [R](
+  o: Option[ScanResult[string]];
+  otherwise: Option[ScanResult[R]];
+  f: UnaryFunctionClosure[SeqIndexSlice, Option[ScanResult[R]]]
+): Option[ScanResult[R]] {. locks: 0 .} =
+  if o.isSome():
+    f(o.unsafeGet().slice())
+  else:
+    otherwise
+
+
+func flatMapOr* [T: not string, R](
+  o: Option[ScanResult[T]];
+  otherwise: Option[ScanResult[R]];
+  f: BinaryFunctionClosure[SeqIndexSlice, T, Option[ScanResult[R]]]
+): Option[ScanResult[R]] {. locks: 0 .} =
+  if o.isSome():
+    ((sr: ScanResult[T]) -> Option[ScanResult[R]] =>
+      f(sr.slice(), sr.value())
+    )(o.unsafeGet())
+  else:
+    otherwise
+
+
+
 func flatMap* [R](
   o: Option[ScanResult[string]];
   f: UnaryFunctionClosure[SeqIndexSlice, Option[ScanResult[R]]]
 ): Option[ScanResult[R]] {. locks: 0 .} =
-  if o.isSome():
-    o.unsafeGet().slice().f()
-  else:
-    ScanResult[R].none()
+  o.flatMapOr(ScanResult[R].none(), f)
 
 
 func flatMap* [T: not string, R](
   o: Option[ScanResult[T]];
   f: BinaryFunctionClosure[SeqIndexSlice, T, Option[ScanResult[R]]]
 ): Option[ScanResult[R]] {. locks: 0 .} =
-  if o.isSome():
-    ((sr: ScanResult[T]) -> ScanResult[R] => sr.slice().f(sr.value()))(
-      o.unsafeGet()
-    )
+  o.flatMapOr(ScanResult[R].none(), f)
+
+
+
+func valueToString [T](self: ScanResult[T]): string {. locks: 0 .} =
+  when T is string:
+    ""
   else:
-    ScanResult[R].none()
+    fmt", val: {self.value()}"
+
+
+func `$`* [T](self: ScanResult[T]): string {. locks: 0 .} =
+  fmt"(slice: {self.slice()}" & self.valueToString() & ')'

@@ -1,8 +1,9 @@
-import pkgconfexe/version
+import pkgconfexe/[ version ]
+import pkgconfexe/private/[ scanresult ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
-import std/[ strscans, unittest ]
+import std/[ strformat, unittest ]
 
 
 
@@ -26,9 +27,12 @@ suite "version":
           it.isVersion()
 
 
-  test "scanfVersion":
-    var match = ""
+  test "scanVersion":
+    const
+      Expected = "3.5-1~97"
+      Input = fmt"{Expected}|°"
+    let optScanResult = Input.scanVersion()
 
     check:
-      "3.5-1~97|°".scanf("${scanfVersion}", match)
-      match == "3.5-1~97"
+      optScanResult.isSome()
+      Input[optScanResult.unsafeGet().slice()] == Expected

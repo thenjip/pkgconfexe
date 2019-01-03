@@ -1,11 +1,16 @@
-import pkgconfexe/package
+import pkgconfexe/[ package ]
+import pkgconfexe/private/[ scanresult ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
-import std/[ os, sequtils, strformat, strscans, unittest ]
+import std/[ os, sequtils, strformat, unittest ]
 
 
 include "data.nims"
+
+
+
+const CommonData = [ "gtk+", ".NET", "ØMQ" ]
 
 
 
@@ -14,21 +19,25 @@ suite "package":
     check:
       not "".isPackage()
 
-    [ "gtk+", ".NET", "ØMQ" ]-->foreach(
-      (proc (p: string) =
+    [ "gtk+", ".NET", "ØMQ" ].zfun:
+      foreach:
         check:
-          p.isPackage()
-
-        let noisyPkg = fmt"{p},d^¨"
-        var match = ""
-
-        check:
-          noisyPkg.scanf("${scanfPackage}", match)
-          match == p
-      )(it)
-    )
+          it.isPackage()
 
     toSeq(fmt"{DataDir}/*.pc".walkFiles()).zfun:
       foreach:
         check:
           it.splitFile().name.isPackage()
+
+
+
+  test "scanPackage":
+    CommonData.zfun:
+      foreach:
+        let
+          noisyPkg = it & ",d^¨"
+          optScanResult = noisyPkg.scanPackage()
+
+        check:
+          optScanResult.isSome()
+          noisyPkg[optScanResult.unsafeGet().slice()] == it

@@ -1,4 +1,4 @@
-import pkgconfexe/private/[ scanresult ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
 import pkg/[ zero_functional ]
 
@@ -22,11 +22,11 @@ suite "scanresult":
 
 
 
-  test "toOptScanResult":
+  test "toOptionScanResult":
     check:
-      { 'a' .. 'r' }.some().toOptScanResult(5, 7) ==
+      { 'a' .. 'r' }.some().toOptionScanResult(5, 7) ==
         someScanResult(5, 7, { 'a' .. 'r' })
-      seq[int].none().toOptScanResult(6, 32) ==
-        seq[int].none().toOptScanResult(53156, 23)
-      (tuple[c: char, i: int]).none().toOptScanResult(6546, 31656) !=
-        ('1', 0).some().toOptScanResult(6546, 31656)
+      seq[int].none().toOptionScanResult(6, 32) ==
+        seq[int].none().toOptionScanResult(53156, 23)
+      (tuple[c: char, i: int]).none().toOptionScanResult(6546, 31656) !=
+        ('1', 0).some().toOptionScanResult(6546, 31656)

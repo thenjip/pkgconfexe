@@ -52,11 +52,11 @@ func firstChar (s: string): char {. locks: 0 .} =
   s[s.low()]
 
 
-func `in`* (r: Rune; s: set[AsciiChar]): bool {. locks: 0 .} =
+func `in`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
   r.toUTF8().firstChar() in s
 
 
-func `notin`* (r: Rune; s: set[AsciiChar]): bool {. locks: 0 .} =
+func `notin`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
   not (r in s)
 
 
@@ -90,17 +90,15 @@ func isSpace* (r: Rune): bool {. locks: 0 .} =
 func countValidBytes* (
   input: string; slice: SeqIndexSlice; pred: Predicate[Rune]
 ): Natural {. locks: 0 .} =
-  result = slice.a
+  result = 0
 
   while result < slice.len():
-    let r = input.runeAt(result)
+    let r = input.runeAt(slice.a + result)
 
     if not r.pred():
       break
 
     result += r.size()
-
-  result -= slice.a
 
 
 

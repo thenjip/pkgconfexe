@@ -1,4 +1,4 @@
-import scanresult, utf8
+import seqindexslice, utf8
 
 import pkg/[ unicodedb, unicodeplus ]
 
@@ -12,28 +12,31 @@ import std/unicode except isAlpha
 
 const
   AllowedCharOthers* = { '_' }
-  AllowedOtherCharCategories* = ctgL + ctgN
+  AllowedOtherCharCategories* = ctgL + ctgNd
 
 
 
-func checkFirstRune (r: Rune): bool {. locks: 0 .} =
+func firstRuneIsValid (r: Rune): bool {. locks: 0 .} =
   r in AllowedCharOthers or r.isAlpha()
 
 
-func checkOtherRune (r: Rune): bool {. locks: 0 .} =
+func otherRuneIsValid (r: Rune): bool {. locks: 0 .} =
   r in AllowedCharOthers or r.unicodeCategory() in AllowedOtherCharCategories
 
+
+func checkOtherRunes (x: string; firstRuneLen: Positive): bool {. locks: 0 .} =
+  if firstRuneLen < x.len():
+    x.countValidBytes(
+      seqIndexSlice(x.low() + firstRuneLen, x.high()), otherRuneIsValid
+    ) == x.len() - firstRuneLen
+  else:
+    true
 
 
 func checkRunes (x: string; firstRune: tuple[r: Rune, len: Positive]): bool {.
   locks: 0
 .} =
-  firstRune.r.checkFirstRune() and
-    countValidBytes(
-      x,
-      seqIndexSlice(x.low() + firstRune.len, x.high()),
-      checkOtherRune
-    ) == x.len() - firstRune.len
+  firstRune.r.firstRuneIsValid() and x.checkOtherRunes(firstRune.len)
 
 
 func isIdentifier* (x: string): bool {. locks: 0 .} =

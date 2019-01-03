@@ -2,7 +2,7 @@ import private/[ scanresult, utf8 ]
 
 import pkg/zero_functional
 
-import std/[ options, strformat, sugar, tables, unicode ]
+import std/[ options, strformat, tables, unicode ]
 
 
 
@@ -14,11 +14,7 @@ type Comparator* {. pure .} = enum
 
 
 const
-  ComparatorMap* = toOrderedTable(
-    Comparator-->map(
-      ((c: Comparator) -> (seq[Rune], Comparator) => (($c).toRunes(), c))(it)
-    )
-  )
+  ComparatorMap* = toOrderedTable(Comparator-->map((($it).toRunes(), it)))
 
   ComparatorOptions*: array[Comparator, string] = [
     "--max-version",
@@ -26,7 +22,7 @@ const
     "--atleast-version"
   ]
 
-  ComparatorNChars* = 2
+  ComparatorNChars* = Comparator.low().`$`().len()
 
 
 
@@ -42,6 +38,10 @@ func option* (c: Comparator): string {. locks: 0 .} =
 
 func isComparator* (x: seq[Rune]): bool {. locks: 0 .} =
   ComparatorMap.hasKey(x)
+
+
+func isComparator* (x: string): bool {. locks: 0 .} =
+  x.toRunes().isComparator()
 
 
 

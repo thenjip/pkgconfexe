@@ -8,7 +8,7 @@ import std/[ unittest ]
 
 suite "identifier":
   test "isIdentifier":
-    [ "_", "_é", "ù1", "_1", "a3ë", "CC", "SOME_ENV_VAR", "_ANOTHER"].zfun:
+    [ "_", "_é", "ù1", "_1", "a3ë", "CC", "SOME_ENV_VAR", "_ANOTHER" ].zfun:
       foreach:
         check:
           it.isIdentifier()

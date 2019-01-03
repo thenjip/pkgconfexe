@@ -1,4 +1,4 @@
-import scanresult, utf8, zfunchelper
+import seqindexslice, utf8, zfunchelper
 
 import pkg/[ unicodedb ]
 

@@ -1,8 +1,9 @@
-import pkgconfexe/comparator
+import pkgconfexe/[ comparator ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
-import std/[ unicode, unittest ]
+import std/[ tables, unicode, unittest ]
 
 
 
@@ -23,6 +24,7 @@ suite "comparator":
           not it.isComparator()
 
 
+
   test "option":
     Comparator.zfun:
       foreach:
@@ -30,17 +32,23 @@ suite "comparator":
           it.option() == ComparatorOptions[it]
 
 
-  test "scanfComparator":
+
+  test "scanComparator":
     [ "", "ép>=" ].zfun:
       foreach:
-        var c: Comparator
+        let optScanResult = it.scanComparator()
 
         check:
-          it.scanfComparator(c, it.low()) == 0
+          optScanResult.isNone()
 
     [ "==3.0", "<=µ" ].zfun:
       foreach:
-        var c: Comparator
+        let
+          slice = seqIndexSlice(it.low(), ComparatorNChars.Positive)
+          expected = ComparatorMap[it[slice].toRunes()]
+          optScanResult = it.scanComparator()
 
         check:
-          it.scanfComparator(c, it.low()) == ComparatorNChars
+          optScanResult.isSome()
+          it[optScanResult.unsafeGet().slice()] == it[slice]
+          optScanResult.unsafeGet().value() == expected
