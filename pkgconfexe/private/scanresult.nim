@@ -1,9 +1,9 @@
-import functiontypes, optional, seqindexslice
+import optional, seqindexslice
 
-import std/[ options, strformat, sugar ]
+import std/[ strformat ]
 
 
-export options
+export optional
 
 
 
@@ -17,29 +17,29 @@ type ScanResult* [T] = object
 
 func someScanResult* (
   start: Natural; n: Positive
-): Option[ScanResult[string]] {. locks: 0 .} =
+): Optional[ScanResult[string]] {. locks: 0 .} =
   ScanResult[string](start: start, n: n).some()
 
 
 func someScanResult* [T: not string](
   start: Natural; n: Positive; val: T
-): Option[ScanResult[T]] {. locks: 0 .} =
+): Optional[ScanResult[T]] {. locks: 0 .} =
   ScanResult[T](start: start, n: n, val: val).some()
 
 
 
-func emptyScanResult* [T](): Option[ScanResult[T]] {. locks: 0 .} =
+func emptyScanResult* [T](): Optional[ScanResult[T]] {. locks: 0 .} =
   ScanResult[T].none()
 
 
-func emptyScanResult* (T: typedesc): Option[ScanResult[T]] {. locks: 0 .} =
+func emptyScanResult* (T: typedesc): Optional[ScanResult[T]] {. locks: 0 .} =
   emptyScanResult[T]()
 
 
 
 func buildScanResult* (
   start: Natural; n: Natural
-): Option[ScanResult[string]] {. locks: 0 .} =
+): Optional[ScanResult[string]] {. locks: 0 .} =
   if n == Natural.low():
     string.emptyScanResult()
   else:
@@ -78,53 +78,52 @@ func sliceAndVal* [T: not string](
 
 
 
-func toOptionScanResult* [T: not string](
-  o: Option[T]; start: Natural; n: Positive
-): Option[ScanResult[T]] {. locks: 0 .} =
+func toOptionalScanResult* [T: not string](
+  o: Optional[T]; start: Natural; n: Positive
+): Optional[ScanResult[T]] {. locks: 0 .} =
   o.flatMap(
-    UnaryFunctionClosure(
-      (val: T) -> Option[ScanResult[T]] => someScanResult(start, n, val)
-    )
+    func (val: T): Optional[ScanResult[T]] {. locks: 0 .} =
+      someScanResult(start, n, val)
   )
 
 
 
 func flatMapOr* [R](
-  o: Option[ScanResult[string]];
-  otherwise: Option[ScanResult[R]];
-  f: UnaryFunctionClosure[SeqIndexSlice, Option[ScanResult[R]]]
-): Option[ScanResult[R]] {. locks: 0 .} =
-  if o.isSome():
-    f(o.unsafeGet().slice())
-  else:
-    otherwise
+  o: Optional[ScanResult[string]];
+  otherwise: Optional[ScanResult[R]];
+  f: func (slice: SeqIndexSlice): Optional[ScanResult[R]] {. locks: 0 .}
+): Optional[ScanResult[R]] {. locks: 0 .} =
+  o.flatMapOr(
+    otherwise,
+    func (sr: ScanResult[string]): Optional[ScanResult[R]] {. locks: 0 .} =
+      f(sr.slice())
+  )
 
 
 func flatMapOr* [T: not string, R](
-  o: Option[ScanResult[T]];
-  otherwise: Option[ScanResult[R]];
-  f: BinaryFunctionClosure[SeqIndexSlice, T, Option[ScanResult[R]]]
-): Option[ScanResult[R]] {. locks: 0 .} =
-  if o.isSome():
-    ((sr: ScanResult[T]) -> Option[ScanResult[R]] =>
+  o: Optional[ScanResult[T]];
+  otherwise: Optional[ScanResult[R]];
+  f: func (slice: SeqIndexSlice; val: T): Optional[ScanResult[R]] {. locks: 0 .}
+): Optional[ScanResult[R]] {. locks: 0 .} =
+  o.flatMapOr(
+    otherwise,
+    func (sr: ScanResult[T]): Optional[ScanResult[R]] {. locks: 0 .} =
       f(sr.slice(), sr.value())
-    )(o.unsafeGet())
-  else:
-    otherwise
+  )
 
 
 
 func flatMap* [R](
-  o: Option[ScanResult[string]];
-  f: UnaryFunctionClosure[SeqIndexSlice, Option[ScanResult[R]]]
-): Option[ScanResult[R]] {. locks: 0 .} =
+  o: Optional[ScanResult[string]];
+  f: func (slice: SeqIndexSlice): Optional[ScanResult[R]] {. locks: 0 .}
+): Optional[ScanResult[R]] {. locks: 0 .} =
   o.flatMapOr(ScanResult[R].none(), f)
 
 
 func flatMap* [T: not string, R](
-  o: Option[ScanResult[T]];
-  f: BinaryFunctionClosure[SeqIndexSlice, T, Option[ScanResult[R]]]
-): Option[ScanResult[R]] {. locks: 0 .} =
+  o: Optional[ScanResult[T]];
+  f: func (slice: SeqIndexSlice; val: T): Optional[ScanResult[R]] {. locks: 0 .}
+): Optional[ScanResult[R]] {. locks: 0 .} =
   o.flatMapOr(ScanResult[R].none(), f)
 
 

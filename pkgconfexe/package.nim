@@ -20,11 +20,13 @@ func isValid* (r: Rune): bool {. locks: 0 .} =
 
 func isPackage* (x: string): bool {. locks: 0 .} =
   x.len() > 0 and
-    x.countValidBytes(seqIndexSlice(x.low(), x.high()), isValid) == x.len()
+    x.countValidBytes(
+      seqIndexSlice(x.low(), x.len().Positive), isValid
+    ) == x.len()
 
 
 
-func scanPackage* (input: string; start: Natural): Option[ScanResult[string]] {.
+func scanPackage* (input: string; start: Natural): Optional[ScanResult[string]] {.
   locks: 0
 .} =
   if start >= input.len():
@@ -35,5 +37,5 @@ func scanPackage* (input: string; start: Natural): Option[ScanResult[string]] {.
     )
 
 
-func scanPackage* (input: string): Option[ScanResult[string]] {. locks: 0 .} =
+func scanPackage* (input: string): Optional[ScanResult[string]] {. locks: 0 .} =
   input.scanPackage(input.low())

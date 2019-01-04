@@ -20,11 +20,13 @@ func isValid (r: Rune): bool {. locks: 0 .} =
 
 func isVersion* (x: string): bool {. locks: 0 .} =
   x.len() > 0 and
-    x.countValidBytes(seqIndexSlice(x.low(), x.high()), isValid) == x.len()
+    x.countValidBytes(
+      seqIndexSlice(x.low(), x.len().Positive), isValid
+    ) == x.len()
 
 
 
-func scanVersion* (input: string; start: Natural): Option[ScanResult[string]] {.
+func scanVersion* (input: string; start: Natural): Optional[ScanResult[string]] {.
   locks: 0
 .} =
   if start >= input.len():
@@ -35,5 +37,5 @@ func scanVersion* (input: string; start: Natural): Option[ScanResult[string]] {.
     )
 
 
-func scanVersion* (input: string): Option[ScanResult[string]] {. locks: 0 .} =
+func scanVersion* (input: string): Optional[ScanResult[string]] {. locks: 0 .} =
   input.scanVersion(input.low())

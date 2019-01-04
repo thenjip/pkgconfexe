@@ -1,4 +1,4 @@
-import functiontypes, seqindexslice
+import seqindexslice
 
 import pkg/[ unicodedb ]
 
@@ -19,6 +19,8 @@ func convertRuneInfo* (x: tuple[r: Rune, len: int]): (Rune, Positive) {.
 
 
 func firstRune* (s: string): tuple[r: Rune, len: Positive] {. locks: 0 .} =
+  result = (Rune(-1), 0.Positive)
+
   var i = s.low()
 
   s.fastRuneAt(i, result.r, true)
@@ -88,7 +90,7 @@ func isSpace* (r: Rune): bool {. locks: 0 .} =
   One or more bytes are taken when verifying the predicate.
 ]##
 func countValidBytes* (
-  input: string; slice: SeqIndexSlice; pred: Predicate[Rune]
+  input: string; slice: SeqIndexSlice; pred: func (t: Rune): bool {. locks: 0 .}
 ): Natural {. locks: 0 .} =
   result = 0
 
