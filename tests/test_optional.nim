@@ -46,6 +46,20 @@ suite "optional":
 
 
 
+  test "==":
+    let
+      someByte = 197.byte.some()
+      otherSomeByte = 5.byte.some()
+      nothing = byte.none()
+
+    check:
+      nothing == nothing
+      someByte == someByte
+      someByte != otherSomeByte
+      nothing != someByte
+
+
+
   test "doIfSome":
     let
       someBool = true.some()

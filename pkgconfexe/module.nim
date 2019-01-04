@@ -1,7 +1,7 @@
 import comparator, package, version
-import private/[ scanresult, seqindexslice ]
+import private/[ scanresult, seqindexslice, utf8 ]
 
-import std/[ strformat ]
+import std/[ sugar ]
 
 
 export comparator
@@ -10,12 +10,12 @@ export comparator
 
 type
   VersionInfo* = object
-    cmp: Comparator
-    version: string
+    cmp*: Comparator
+    version*: string
 
   Module* = object
     pkg*: string
-    versionInfo: Optional[VersionInfo]
+    versionInfo*: Optional[VersionInfo]
 
 
 
@@ -30,35 +30,30 @@ func buildModule* (pkg: string; cmp: Comparator; version: string): Module {.
 
 
 
-func hasVersion* (m: Module): bool {. locks: 0 .} =
-  m.versionInfo.isSome()
+func hasVersion* (self: Module): bool {. locks: 0 .} =
+  self.versionInfo.isSome()
 
 
 
-func cmp (m: Module): Comparator {. locks: 0 .} =
-  m.versionInfo.get().cmp
-
-
-func version (m: Module): string {. locks: 0 .} =
-  m.versionInfo.get().version
-
+func `==` (l, r: VersionInfo): bool {. locks: 0 .} =
+  l.cmp == r.cmp and l.version == r.version
 
 
 func `==`* (l, r: Module): bool {. locks: 0 .} =
   if l.hasVersion():
     r.hasVersion() and
-      l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
+      l.pkg == r.pkg and l.versionInfo.get() == r.versionInfo.get()
   else:
     (not r.hasVersion()) and l.pkg == r.pkg
 
 
 
-func `$`* (m: Module): string {. locks: 0 .} =
-  result =
-    if m.hasVersion():
-      fmt"{m.pkg}{$m.cmp}{m.version}"
-    else:
-      m.pkg
+func `$` (vi: VersionInfo): string {. locks: 0 .} =
+  $vi.cmp & vi.version
+
+
+func `$`* (self: Module): string {. locks: 0 .} =
+  self.pkg & self.versionInfo.ifSome((vi: VersionInfo) => $vi, "")
 
 
 
@@ -66,30 +61,31 @@ func scanModule* (
   input: string; start: Natural
 ): Optional[ScanResult[Module]] {. locks: 0 .} =
   input.scanPackage(start).flatMap(
-    func (pkgSlice: SeqIndexSlice): Optional[ScanResult[Module]] {.
-      locks: 0
-    .} =
+    func (pkgSlice: SeqIndexSlice): Optional[ScanResult[Module]] =
       if pkgSlice.b == input.high():
         someScanResult(
           pkgSlice.a, pkgSlice.len(), input[pkgSlice].buildModule()
         )
       else:
-        input.scanComparator(pkgSlice.b + 1).flatMapOr(
+        input.scanComparator(
+          ((i: Natural) =>
+            i + input.skipSpaces(i)
+          )(pkgSlice.b + 1)
+        ).flatMapOr(
           someScanResult(
             pkgSlice.a, pkgSlice.len(), input[pkgSlice].buildModule()
           ),
-          func (
-            cmpSlice: SeqIndexSlice; cmp: Comparator
-          ): Optional[ScanResult[Module]] {. locks: 0 .} =
-            input.scanVersion(cmpSlice.b + 1).flatMap(
-              func (
-                versionSlice: SeqIndexSlice
-              ): Optional[ScanResult[Module]] {. locks: 0 .} =
-                someScanResult(
-                  start,
-                  versionSlice.b + 1,
-                  input[pkgSlice].buildModule(cmp, input[versionSlice])
-                )
+          (cmpSlice: SeqIndexSlice, cmp: Comparator) =>
+            input.scanVersion(
+              ((i: Natural) =>
+                i + input.skipSpaces(i)
+              )(cmpSlice.b + 1)
+            ).flatMap((versionSlice: SeqIndexSlice) =>
+              someScanResult(
+                start,
+                versionSlice.b + 1,
+                input[pkgSlice].buildModule(cmp, input[versionSlice])
+              )
             )
         )
   )

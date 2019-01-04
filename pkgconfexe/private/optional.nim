@@ -1,4 +1,4 @@
-import std/[ strformat, typetraits ]
+import std/[ strformat, sugar, typetraits ]
 
 
 
@@ -88,6 +88,18 @@ func ifSome* [T, R](
     someFunc(self.val)
   else:
     noneFunc()
+
+
+
+func `==`* [T](l, r: Optional[T]): bool {. locks: 0 .} =
+  l.ifSome(
+    (lVal: T) => r.ifSome((rVal: T) => lVal == rVal, false),
+    () => r.isNone()
+  )
+
+
+func `!=`* [T](l, r: Optional[T]): bool {. locks: 0 .} =
+  not (l == r)
 
 
 
