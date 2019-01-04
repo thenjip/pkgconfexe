@@ -2,6 +2,13 @@ import std/[ strformat, sugar, typetraits ]
 
 
 
+##[
+  Basically the same as superfunc's maybe library but without macros.
+  https://github.com/superfunc/maybe
+]##
+
+
+
 type
   NoValueError* = object of Defect
 

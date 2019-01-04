@@ -1,6 +1,6 @@
 import private/[ scanresult, utf8 ]
 
-import pkg/zero_functional
+import pkg/[ zero_functional ]
 
 import std/[ strformat, tables, unicode ]
 
