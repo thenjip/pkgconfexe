@@ -19,6 +19,8 @@ func convertRuneInfo* (x: tuple[r: Rune, len: int]): (Rune, Positive) {.
 
 
 func firstRune* (s: string): tuple[r: Rune, len: Positive] {. locks: 0 .} =
+  result = (Rune(-1), Positive.high())
+
   var i = s.low()
 
   s.fastRuneAt(i, result.r, true)
