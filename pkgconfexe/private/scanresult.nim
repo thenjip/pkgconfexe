@@ -1,139 +1,70 @@
-import optional, seqindexslice
+import seqindexslice
 
-import std/[ strformat ]
-
-
-export optional
+import std/[ sugar ]
 
 
 
-type ScanResult* [T] = object
-  start: Natural ## The index where scanning starts.
-  n: Positive ## The number of matching units (chars, bytes, ...).
-  when T isnot string:
-    val: T
+type ScanResult* = object
+  start*: Natural ## The index where scanning starts.
+  n*: Natural ## The number of matching units (chars, bytes, ...).
 
 
 
-func someScanResult* (
-  start: Natural; n: Positive
-): Optional[ScanResult[string]] =
-  ScanResult[string](start: start, n: n).some()
-
-
-func someScanResult* [T: not string](
-  start: Natural; n: Positive; val: T
-): Optional[ScanResult[T]] =
-  ScanResult[T](start: start, n: n, val: val).some()
+func hasResult* (self: ScanResult): bool =
+  ((n: Natural) => n > type(n).low())(self.n)
 
 
 
-func emptyScanResult* [T](): Optional[ScanResult[T]] =
-  ScanResult[T].none()
-
-
-func emptyScanResult* (T: typedesc): Optional[ScanResult[T]] =
-  emptyScanResult[T]()
+func slice (self: ScanResult): SeqIndexSlice =
+  seqIndexSlice(self.start, self.n.Positive)
 
 
 
-func buildScanResult* (
-  start: Natural; n: Natural
-): Optional[ScanResult[string]] =
-  if n == Natural.low():
-    string.emptyScanResult()
+proc doIfHasResult* [T](
+  self: ScanResult; thenProc, elseProc: proc (self: ScanResult)
+) =
+  if self.hasResult():
+    thenProc(self)
   else:
-    someScanResult(start, n.Positive)
+    elseProc(self)
 
 
-
-func checkVal [T](l, r: ScanResult[T]): bool =
-  when T is string:
-    true
+proc doIfHasResult* [T](
+  self: ScanResult;
+  thenProc: proc (slice: SeqIndexSlice);
+  elseProc: proc (self: ScanResult)
+) =
+  if self.hasResult():
+    thenProc(self.slice())
   else:
-    l.val == r.val
+    elseProc(self)
 
 
-func `==`* [T](l, r: ScanResult[T]): bool =
-  l.start == r.start and l.n == r.n and checkVal(l, r)
+
+func ifHasResult* [T](
+  self: ScanResult; thenFunc, elseFunc: func (self: ScanResult): T
+): T =
+  if self.hasResult():
+    thenFunc(self)
+  else:
+    elseFunc(self)
 
 
-func `!=`* [T](l, r: ScanResult[T]): bool =
+func ifHasResult* [T](
+  self: ScanResult;
+  thenFunc: func (slice: SeqIndexSlice): T;
+  elseFunc: func (self: ScanResult): T
+): T =
+  if self.hasResult():
+    thenFunc(self.slice())
+  else:
+    elseFunc(self)
+
+
+
+func `==`* (l, r: ScanResult): bool =
+  l.start == r.start and l.n == r.n
+
+
+func `!=`* (l, r: ScanResult): bool =
   not (l == r)
-
-
-
-func slice* [T](self: ScanResult[T]): SeqIndexSlice =
-  self.start .. Natural(self.start + self.n - 1)
-
-
-func value* [T: not string](self: ScanResult[T]): T =
-  self.val
-
-
-func sliceAndVal* [T: not string](
-  self: ScanResult[T]
-): tuple[slice: SeqIndexSlice, val: T] =
-  (self.slice(), self.value())
-
-
-
-func toOptionalScanResult* [T: not string](
-  o: Optional[T]; start: Natural; n: Positive
-): Optional[ScanResult[T]] =
-  o.flatMap(
-    func (val: T): Optional[ScanResult[T]] =
-      someScanResult(start, n, val)
-  )
-
-
-
-func flatMapOr* [R](
-  o: Optional[ScanResult[string]];
-  otherwise: Optional[ScanResult[R]];
-  f: func (slice: SeqIndexSlice): Optional[ScanResult[R]]
-): Optional[ScanResult[R]] =
-  o.flatMapOr(
-    otherwise,
-    func (sr: ScanResult[string]): Optional[ScanResult[R]] =
-      f(sr.slice())
-  )
-
-
-func flatMapOr* [T: not string, R](
-  o: Optional[ScanResult[T]];
-  otherwise: Optional[ScanResult[R]];
-  f: func (slice: SeqIndexSlice; val: T): Optional[ScanResult[R]]
-): Optional[ScanResult[R]] =
-  o.flatMapOr(
-    otherwise,
-    func (sr: ScanResult[T]): Optional[ScanResult[R]] =
-      f(sr.slice(), sr.value())
-  )
-
-
-
-func flatMap* [R](
-  o: Optional[ScanResult[string]];
-  f: func (slice: SeqIndexSlice): Optional[ScanResult[R]]
-): Optional[ScanResult[R]] =
-  o.flatMapOr(ScanResult[R].none(), f)
-
-
-func flatMap* [T: not string, R](
-  o: Optional[ScanResult[T]];
-  f: func (slice: SeqIndexSlice; val: T): Optional[ScanResult[R]]
-): Optional[ScanResult[R]] =
-  o.flatMapOr(ScanResult[R].none(), f)
-
-
-
-func valueToString [T](self: ScanResult[T]): string =
-  when T is string:
-    ""
-  else:
-    fmt", val: {self.value()}"
-
-
-func `$`* [T](self: ScanResult[T]): string =
-  fmt"(slice: {self.slice()}" & self.valueToString() & ')'
