@@ -26,26 +26,26 @@ const
 
 
 
-func default* (T: typedesc[Comparator]): T {. locks: 0 .} =
+func default* (T: typedesc[Comparator]): T =
   T.GreaterEq
 
 
 
-func option* (c: Comparator): string {. locks: 0 .} =
+func option* (c: Comparator): string =
   ComparatorOptions[c]
 
 
 
-func isComparator* (x: seq[Rune]): bool {. locks: 0 .} =
+func isComparator* (x: seq[Rune]): bool =
   ComparatorMap.hasKey(x)
 
 
-func isComparator* (x: string): bool {. locks: 0 .} =
+func isComparator* (x: string): bool =
   x.toRunes().isComparator()
 
 
 
-func findComparator (x: seq[Rune]): Optional[Comparator] {. locks: 0 .} =
+func findComparator (x: seq[Rune]): Optional[Comparator] =
   if x.len() == ComparatorNChars and x in ComparatorMap:
     ComparatorMap[x].some()
   else:
@@ -58,7 +58,7 @@ func findComparator (x: seq[Rune]): Optional[Comparator] {. locks: 0 .} =
 ]#
 func scanComparator* (
   input: string; start: Natural
-): Optional[ScanResult[Comparator]] {. locks: 0 .} =
+): Optional[ScanResult[Comparator]] =
   if start >= input.len():
     Comparator.emptyScanResult()
   else:
@@ -70,9 +70,7 @@ func scanComparator* (
 #[
   Assumes the input is in UTF-8.
 ]#
-func scanComparator* (input: string): Optional[ScanResult[Comparator]] {.
-  locks: 0
-.} =
+func scanComparator* (input: string): Optional[ScanResult[Comparator]] =
   input.scanComparator(input.low())
 
 

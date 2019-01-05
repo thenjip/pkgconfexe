@@ -21,7 +21,11 @@ const SomeTestData = [
     "C#>=2.0.5-4~ß",
     buildModule("C#", Comparator.GreaterEq, "2.0.5-4~ß")
   ),
-  ("gtk+-3.0\l\0<=3.10.0", "gtk+-3.0", buildModule("gtk+-3.0"))
+  (
+    "gtk+-3.0 <=	 3.10.0",
+    "gtk+-3.0",
+    buildModule("gtk+-3.0", Comparator.LessEq, "3.10.0")
+  )
 ]-->map(it.TestData)
 
 
@@ -40,3 +44,8 @@ suite "module":
       foreach:
         check:
           it.input.scanModule().get().value() == it.expectedMod
+
+
+
+  test "module":
+    const m = module"a==6"

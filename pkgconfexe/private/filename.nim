@@ -63,20 +63,18 @@ else:
 
 
 ## Last rune of input excluded.
-func isValid (r: Rune): bool {. locks: 0 .} =
+func isValid (r: Rune): bool =
   r notin ReservedChars and not r.isControl()
 
 
-func checkRunes (x: string; lastRune: tuple[r: Rune, len: Positive]): bool {.
-  locks: 0
-.} =
+func checkRunes (x: string; lastRune: tuple[r: Rune, len: Positive]): bool =
   lastRune.r notin ForbiddenLastChars and
     x.countValidBytes(
       seqIndexSlice(x.low(), x.high() - lastRune.len), isValid
     ) == x.len() - lastRune.len
 
 
-func isFileName* (x: string): bool {. locks: 0 .} =
+func isFileName* (x: string): bool =
   x.len() > 0 and
     x.runeAt(x.low()) != ShortOptionPrefix and
     x.checkRunes(x.lastRune(x.high()).convertRuneInfo()) and

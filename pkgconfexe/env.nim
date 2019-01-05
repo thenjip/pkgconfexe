@@ -19,13 +19,13 @@ type
 
 
 
-func `$`* (e: EnvVarValue): string {. locks: 0 .} =
+func `$`* (e: EnvVarValue): string =
   result = fmt"""{$e.envVar}="{e.val}{'"'}"""
 
 
 
 func toString (e: EnvVarValue; envVars: var set[EnvVar]): string {.
-  locks: 0, raises: [ ValueError ]
+  raises: [ ValueError ]
 .} =
   if e.envVar in envVars:
     raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
@@ -34,9 +34,7 @@ func toString (e: EnvVarValue; envVars: var set[EnvVar]): string {.
   envVars.incl(e.envVar)
 
 
-func buildEnv* (env: seq[EnvVarValue]): string {.
-  locks: 0, raises: [ ValueError ]
-.} =
+func buildEnv* (env: seq[EnvVarValue]): string {. raises: [ ValueError ] .} =
   var envVars: set[EnvVar]
 
   result = env.callZFunc(map(it.toString(envVars))).join($' ')

@@ -11,14 +11,12 @@ type AsciiChar* = range[char.low() .. int8.high().char]
 
 
 
-func convertRuneInfo* (x: tuple[r: Rune, len: int]): (Rune, Positive) {.
-  locks: 0
-.} =
+func convertRuneInfo* (x: tuple[r: Rune, len: int]): (Rune, Positive) =
   (x.r, x.len.Positive)
 
 
 
-func firstRune* (s: string): tuple[r: Rune, len: Positive] {. locks: 0 .} =
+func firstRune* (s: string): tuple[r: Rune, len: Positive] =
   result = (Rune(-1), Positive.high())
 
   var i = s.low()
@@ -28,57 +26,57 @@ func firstRune* (s: string): tuple[r: Rune, len: Positive] {. locks: 0 .} =
 
 
 
-func toRune* (c: AsciiChar): Rune {. locks: 0 .} =
+func toRune* (c: AsciiChar): Rune =
   ($c).firstRune().r
 
 
 
-func `==`* (r: Rune; c: AsciiChar): bool {. locks: 0 .} =
+func `==`* (r: Rune; c: AsciiChar): bool =
   r == c.toRune()
 
 
-func `==`* (c: AsciiChar; r: Rune): bool {. locks: 0 .} =
+func `==`* (c: AsciiChar; r: Rune): bool =
   r == c
 
 
-func `!=`* (r: Rune; c: AsciiChar): bool {. locks: 0 .} =
+func `!=`* (r: Rune; c: AsciiChar): bool =
   not (r == c)
 
 
-func `!=`* (c: AsciiChar; r: Rune): bool {. locks: 0 .} =
+func `!=`* (c: AsciiChar; r: Rune): bool =
   r != c
 
 
 
-func firstChar (s: string): char {. locks: 0 .} =
+func firstChar (s: string): char =
   s[s.low()]
 
 
-func `in`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
+func `in`* (r: Rune; s: set[char]): bool =
   r.toUTF8().firstChar() in s
 
 
-func `notin`* (r: Rune; s: set[char]): bool {. locks: 0 .} =
+func `notin`* (r: Rune; s: set[char]): bool =
   not (r in s)
 
 
 
-func isUtf8* (x: string{lit}): bool {. locks: 0 .} =
+func isUtf8* (x: string{lit}): bool =
   true
 
 
-func isUtf8* (x: string{~lit}): bool {. locks: 0 .} =
+func isUtf8* (x: string{~lit}): bool =
   x.validateUtf8() == -1
 
 
 
 ## Unicdoe control character.
-func isControl* (r: Rune): bool {. locks: 0 .} =
+func isControl* (r: Rune): bool =
   r.unicodeCategory() == ctgCc
 
 
 ## We consider ``'\t'`` as a space unlike Unicode for string scanning purposes.
-func isSpace* (r: Rune): bool {. locks: 0 .} =
+func isSpace* (r: Rune): bool =
   r.unicodeCategory() == ctgZs or r == '\t'
 
 
@@ -90,8 +88,8 @@ func isSpace* (r: Rune): bool {. locks: 0 .} =
   One or more bytes are taken when verifying the predicate.
 ]##
 func countValidBytes* (
-  input: string; slice: SeqIndexSlice; pred: func (t: Rune): bool {. locks: 0 .}
-): Natural {. locks: 0 .} =
+  input: string; slice: SeqIndexSlice; pred: func (r: Rune): bool
+): Natural =
   result = 0
 
   while result < slice.len():
@@ -104,7 +102,7 @@ func countValidBytes* (
 
 
 
-func skipSpaces* (input: string; start: Natural): Natural {. locks: 0 .} =
+func skipSpaces* (input: string; start: Natural): Natural =
   if input.len() > 0:
     input.countValidBytes(start .. input.high().Natural, isSpace)
   else:
@@ -112,5 +110,5 @@ func skipSpaces* (input: string; start: Natural): Natural {. locks: 0 .} =
 
 
 # Skip spaces starting at ``input.low()``.
-func skipSpaces* (input: string): Natural {. locks: 0 .} =
+func skipSpaces* (input: string): Natural =
   input.skipSpaces(input.low())

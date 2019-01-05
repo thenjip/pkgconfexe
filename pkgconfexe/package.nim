@@ -13,12 +13,12 @@ const
 
 
 
-func isValid* (r: Rune): bool {. locks: 0 .} =
+func isValid* (r: Rune): bool =
   r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
 
 
 
-func isPackage* (x: string): bool {. locks: 0 .} =
+func isPackage* (x: string): bool =
   x.len() > 0 and
     x.countValidBytes(
       seqIndexSlice(x.low(), x.len().Positive), isValid
@@ -26,9 +26,9 @@ func isPackage* (x: string): bool {. locks: 0 .} =
 
 
 
-func scanPackage* (input: string; start: Natural): Optional[ScanResult[string]] {.
-  locks: 0
-.} =
+func scanPackage* (
+  input: string; start: Natural
+): Optional[ScanResult[string]] =
   if start >= input.len():
     string.emptyScanResult()
   else:
@@ -37,5 +37,5 @@ func scanPackage* (input: string; start: Natural): Optional[ScanResult[string]] 
     )
 
 
-func scanPackage* (input: string): Optional[ScanResult[string]] {. locks: 0 .} =
+func scanPackage* (input: string): Optional[ScanResult[string]] =
   input.scanPackage(input.low())

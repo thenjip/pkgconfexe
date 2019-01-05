@@ -8,7 +8,7 @@ export env
 
 
 
-func toModules (mods: NimNode): NimNode {. locks: 0 .} =
+func toModules (mods: NimNode): NimNode =
   doAssert(mods.isArrayOf[: string]())
 
   result = "module.toModules".bindSym().newCall(mods)

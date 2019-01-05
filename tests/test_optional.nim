@@ -8,7 +8,7 @@ import std/[ sugar, unittest ]
 
 suite "optional":
   test "none":
-    let o = string.none()
+    let o = none[string]()
 
     check:
       o.isNone()

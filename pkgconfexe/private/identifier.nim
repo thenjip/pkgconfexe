@@ -16,15 +16,15 @@ const
 
 
 
-func firstRuneIsValid (r: Rune): bool {. locks: 0 .} =
+func firstRuneIsValid (r: Rune): bool =
   r in AllowedCharOthers or r.isAlpha()
 
 
-func otherRuneIsValid (r: Rune): bool {. locks: 0 .} =
+func otherRuneIsValid (r: Rune): bool =
   r in AllowedCharOthers or r.unicodeCategory() in AllowedOtherCharCategories
 
 
-func checkOtherRunes (x: string; firstRuneLen: Positive): bool {. locks: 0 .} =
+func checkOtherRunes (x: string; firstRuneLen: Positive): bool =
   if firstRuneLen < x.len():
     x.countValidBytes(
       seqIndexSlice(x.low() + firstRuneLen, x.high()), otherRuneIsValid
@@ -33,11 +33,9 @@ func checkOtherRunes (x: string; firstRuneLen: Positive): bool {. locks: 0 .} =
     true
 
 
-func checkRunes (x: string; firstRune: tuple[r: Rune, len: Positive]): bool {.
-  locks: 0
-.} =
+func checkRunes (x: string; firstRune: tuple[r: Rune, len: Positive]): bool =
   firstRune.r.firstRuneIsValid() and x.checkOtherRunes(firstRune.len)
 
 
-func isIdentifier* (x: string): bool {. locks: 0 .} =
+func isIdentifier* (x: string): bool =
   x.len() > 0 and x.checkRunes(x.firstRune())
