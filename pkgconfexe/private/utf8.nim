@@ -91,12 +91,12 @@ func isSpace* (r: Rune): bool =
   starting at index ``start``.
   Stops verifying as soon as the predicate is not verified.
   Returns at most ``n``.
-  If``start + n`` is greater than ``input.len()``, returns 0.
+  If``start`` is greater than ``input.high()``, returns 0.
 ]##
 func countValidBytes* (
   input: string; start, n: Natural; pred: Predicate[Rune]
 ): Natural =
-  if start + n > input.len():
+  if start > input.high():
     0
   else:
     (func (): Natural =

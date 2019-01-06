@@ -1,5 +1,5 @@
 import pkgconfexe/[ package ]
-import pkgconfexe/private/[ scanresult ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
 import pkg/[ zero_functional ]
 
@@ -26,6 +26,7 @@ suite "package":
 
     toSeq(fmt"{DataDir}/*.pc".walkFiles()).zfun:
       foreach:
+        echo it
         check:
           it.splitFile().name.isPackage()
 
@@ -36,8 +37,8 @@ suite "package":
       foreach:
         let
           noisyPkg = it & ",d^¨"
-          optScanResult = noisyPkg.scanPackage()
+          scanResult = noisyPkg.scanPackage()
 
         check:
-          optScanResult.isSome()
-          noisyPkg[optScanResult.unsafeGet().slice()] == it
+          scanResult.hasResult()
+          noisyPkg[seqIndexSlice(scanResult.start, scanResult.n)] == it

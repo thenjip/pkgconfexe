@@ -1,5 +1,5 @@
 import pkgconfexe/[ version ]
-import pkgconfexe/private/[ scanresult ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
 import pkg/[ zero_functional ]
 
@@ -31,8 +31,8 @@ suite "version":
     const
       Expected = "3.5-1~97"
       Input = fmt"{Expected}|°"
-    let optScanResult = Input.scanVersion()
+    let scanResult = Input.scanVersion()
 
     check:
-      optScanResult.isSome()
-      Input[optScanResult.unsafeGet().slice()] == Expected
+      scanResult.hasResult()
+      Input[seqIndexSlice(scanResult.start, scanResult.n)] == Expected

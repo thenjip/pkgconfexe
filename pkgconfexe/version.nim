@@ -18,24 +18,23 @@ func isValid (r: Rune): bool =
 
 
 
-func isVersion* (x: string): bool =
-  x.len() > 0 and
-    x.countValidBytes(
-      seqIndexSlice(x.low(), x.len().Positive), isValid
-    ) == x.len()
+func scanVersion* (input: string; start, n: Natural): ScanResult =
+  (func (nParsed: Natural): ScanResult =
+    if nParsed > 0:
+      someScanResult(start, nParsed)
+    else:
+      emptyScanResult(start)
+  )(input.countValidBytes(start, n, isValid))
 
 
-
-func scanVersion* (
-  input: string; start: Natural
-): Optional[ScanResult[string]] =
-  if start >= input.len():
-    string.emptyScanResult()
-  else:
-    buildScanResult(
-      start, input.countValidBytes(start .. input.high().Natural, isValid)
-    )
+func scanVersion* (input: string; start: Natural): ScanResult =
+  input.scanVersion(start, input.len())
 
 
-func scanVersion* (input: string): Optional[ScanResult[string]] =
+func scanVersion* (input: string): ScanResult =
   input.scanVersion(input.low())
+
+
+
+func isVersion* (x: string): bool =
+  x.len() > 0 and x.scanVersion().n == x.len()

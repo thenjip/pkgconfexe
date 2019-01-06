@@ -3,7 +3,7 @@ import pkgconfexe/private/[ scanresult, seqindexslice ]
 
 import pkg/[ zero_functional ]
 
-import std/[ tables, unicode, unittest ]
+import std/[ options, unicode, unittest ]
 
 
 
@@ -34,21 +34,29 @@ suite "comparator":
 
 
   test "scanComparator":
-    [ "", "ép>=" ].zfun:
-      foreach:
-        let optScanResult = it.scanComparator()
+    (proc () =
+      [ "", "ép>=" ].zfun:
+        foreach:
+          let scanResult = it.scanComparator()
 
-        check:
-          optScanResult.isNone()
+          check:
+            not scanResult.hasResult()
+    )()
 
-    [ "==3.0", "<=µ" ].zfun:
+    type TestData = tuple
+      input: string
+      start: int
+      expected: Comparator
+
+    [ ("==3.0", 0, Comparator.Equal), ("g<=µ", 1, Comparator.LessEq) ].zfun:
+      map:
+        it.TestData
       foreach:
         let
-          slice = seqIndexSlice(it.low(), ComparatorNChars.Positive)
-          expected = ComparatorMap[it[slice].toRunes()]
-          optScanResult = it.scanComparator()
+          scanResult = it.input.scanComparator(it.start)
+          slicedIn = it.input[seqIndexSlice(scanResult.start, scanResult.n)]
 
         check:
-          optScanResult.isSome()
-          it[optScanResult.unsafeGet().slice()] == it[slice]
-          optScanResult.unsafeGet().value() == expected
+          scanResult.hasResult()
+          slicedIn.isComparator()
+          slicedIn.findComparator().get() == it.expected

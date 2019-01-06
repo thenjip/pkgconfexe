@@ -2,7 +2,7 @@ import private/[ scanresult, utf8 ]
 
 import pkg/[ zero_functional ]
 
-import std/[ strformat, tables, unicode ]
+import std/[ options, tables, unicode ]
 
 
 
@@ -37,7 +37,7 @@ func option* (c: Comparator): string =
 
 
 func isComparator* (x: seq[Rune]): bool =
-  ComparatorMap.hasKey(x)
+  x.len() == ComparatorNChars and x in ComparatorMap
 
 
 func isComparator* (x: string): bool =
@@ -45,32 +45,28 @@ func isComparator* (x: string): bool =
 
 
 
-func findComparator (x: seq[Rune]): Optional[Comparator] =
-  if x.len() == ComparatorNChars and x in ComparatorMap:
+func findComparator* (x: seq[Rune]): Option[Comparator] =
+  if x.isComparator():
     ComparatorMap[x].some()
   else:
     Comparator.none()
 
 
+func findComparator* (x: string): Option[Comparator] =
+  x.toRunes().findComparator()
 
-#[
-  Assumes the input is in UTF-8.
-]#
-func scanComparator* (
-  input: string; start: Natural
-): Optional[ScanResult[Comparator]] =
-  if start >= input.len():
-    Comparator.emptyScanResult()
+
+
+func scanComparator* (input: string; start: Natural): ScanResult =
+  if start > input.high() or input.runeSubStr(
+    start, ComparatorNChars
+  ).findComparator().isNone():
+    emptyScanResult(start)
   else:
-    input.runeSubStr(
-      start, ComparatorNChars
-    ).toRunes().findComparator().toOptionalScanResult(start, ComparatorNChars)
+    someScanResult(start, ComparatorNChars)
 
 
-#[
-  Assumes the input is in UTF-8.
-]#
-func scanComparator* (input: string): Optional[ScanResult[Comparator]] =
+func scanComparator* (input: string): ScanResult =
   input.scanComparator(input.low())
 
 

@@ -100,7 +100,7 @@ suite "utf8":
       expected: Natural
 
     [
-      (("", 0, 3,  Predicate[Rune]((r: Rune) => true)), 0.Natural),
+      (("", 1, 3,  Predicate[Rune]((r: Rune) => true)), 0.Natural),
       (("abcd", 0, 4, Predicate[Rune]((r: Rune) => r.isDigit())), 0.Natural),
       (
         ("ALP*64dfD", 1, 8, Predicate[Rune]((r: Rune) => r.isUpper())),
