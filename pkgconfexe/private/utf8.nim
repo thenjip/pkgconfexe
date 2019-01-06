@@ -1,8 +1,8 @@
-import seqindexslice
+import functiontypes
 
 import pkg/[ unicodedb ]
 
-import std/[ unicode ]
+import std/[ sugar, unicode ]
 
 
 
@@ -53,7 +53,12 @@ func firstChar (s: string): char =
 
 
 func `in`* (r: Rune; s: set[char]): bool =
-  r.toUTF8().firstChar() in s
+  (func (first: char): bool =
+    if first > AsciiChar.high():
+      false
+    else:
+      first in s
+  )(r.toUTF8().firstChar())
 
 
 func `notin`* (r: Rune; s: set[char]): bool =
@@ -82,31 +87,38 @@ func isSpace* (r: Rune): bool =
 
 
 ##[
-  Returns the number of bytes that verify predicate ``pred``
-  starting at index ``slice.a``.
+  Returns the number of bytes that verify the predicate ``pred``
+  starting at index ``start``.
   Stops verifying as soon as the predicate is not verified.
-  One or more bytes are taken when verifying the predicate.
+  Returns at most ``n``.
+  If``start + n`` is greater than ``input.len()``, returns 0.
 ]##
 func countValidBytes* (
-  input: string; slice: SeqIndexSlice; pred: func (r: Rune): bool
+  input: string; start, n: Natural; pred: Predicate[Rune]
 ): Natural =
-  result = 0
+  if start + n > input.len():
+    0
+  else:
+    (func (): Natural =
+      result = 0
 
-  while result < slice.len():
-    let r = input.runeAt(slice.a + result)
+      while result < n:
+        let r = input.runeAt(start + result)
 
-    if not r.pred():
-      break
+        if result + r.size() > n or not pred(r):
+          break
 
-    result += r.size()
+        result += r.size()
+    )()
 
+
+
+func skipSpaces* (input: string; start: Natural; n: Natural): Natural =
+  input.countValidBytes(start, n, isSpace)
 
 
 func skipSpaces* (input: string; start: Natural): Natural =
-  if input.len() > 0:
-    input.countValidBytes(start .. input.high().Natural, isSpace)
-  else:
-    0
+  input.skipSpaces(start, input.len())
 
 
 # Skip spaces starting at ``input.low()``.

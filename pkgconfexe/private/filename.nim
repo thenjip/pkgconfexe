@@ -9,7 +9,7 @@ import std/[ unicode ]
 
 when defined(windows):
   const
-    ReservedChars* = {
+    ReservedChars*: set[AsciiChar] = {
       '?', '*',
       ':', PathSep,
       '/', '\\', '|', AltSep, DirSep,
@@ -17,7 +17,7 @@ when defined(windows):
       '<', '>'
     }
 
-    ForbiddenLastChars* = { ' ', '.' } + ReservedChars
+    ForbiddenLastChars*: set[AsciiChar] = { ' ', '.' } + ReservedChars
 else:
   const
     ReservedChars* = { AltSep, DirSep, PathSep }
@@ -62,25 +62,24 @@ else:
 
 
 
-## Last rune of input excluded.
 func isValid (r: Rune): bool =
   r notin ReservedChars and not r.isControl()
 
 
-func checkRunes (x: string; lastRune: tuple[r: Rune, len: Positive]): bool =
-  lastRune.r notin ForbiddenLastChars and
-    x.countValidBytes(
-      seqIndexSlice(x.low(), x.high() - lastRune.len), isValid
-    ) == x.len() - lastRune.len
+func checkRunes (x: string; firstRune, lastRune: Rune): bool =
+  firstRune != ShortOptionPrefix and
+    lastRune notin ForbiddenLastChars and
+    x.countValidBytes(x.low(), x.len(), isValid) == x.len()
 
 
 func isFileName* (x: string): bool =
   x.len() > 0 and
-    x.runeAt(x.low()) != ShortOptionPrefix and
-    x.checkRunes(x.lastRune(x.high()).convertRuneInfo()) and
+    x.checkRunes(x.runeAt(x.low()), x.runeAt(x.high())) and
     ReservedName.zeroFunc(all($it != x))
 
 
 
 static:
-  ReservedName-->foreach(doAssert(($it).isUtf8()))
+  ReservedName.zfun:
+    foreach:
+      doAssert(($it).isUtf8())

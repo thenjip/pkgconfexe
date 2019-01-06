@@ -1,8 +1,9 @@
-import seqindexslice, utf8
+import utf8
 
 import pkg/[ unicodedb, unicodeplus ]
 
 import std/unicode except isAlpha
+import std/[ sugar ]
 
 
 
@@ -11,7 +12,7 @@ import std/unicode except isAlpha
 
 
 const
-  AllowedCharOthers* = { '_' }
+  AllowedCharOthers*: set[AsciiChar] = { '_' }
   AllowedOtherCharCategories* = ctgL + ctgNd
 
 
@@ -25,12 +26,9 @@ func otherRuneIsValid (r: Rune): bool =
 
 
 func checkOtherRunes (x: string; firstRuneLen: Positive): bool =
-  if firstRuneLen < x.len():
-    x.countValidBytes(
-      seqIndexSlice(x.low() + firstRuneLen, x.high()), otherRuneIsValid
-    ) == x.len() - firstRuneLen
-  else:
-    true
+  ((len: Natural) =>
+    x.countValidBytes(x.low() + firstRuneLen, len, otherRuneIsValid) == len
+  )(x.len() - firstRuneLen)
 
 
 func checkRunes (x: string; firstRune: tuple[r: Rune, len: Positive]): bool =

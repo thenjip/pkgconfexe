@@ -12,14 +12,18 @@ suite "filename":
       not "".isFileName()
       "Zfmbkç9^`{'à’Ω§ŁÐŊª® Æħ̉̉ĸłþ¨¤؆".isFileName()
 
-    toSeq("*.nim*".walkFiles()).zfun:
+    let files = toSeq("*".walkFiles())
+
+    files.zfun:
       foreach:
+        echo it
         check:
           it.isFileName()
 
     const winFileName = "NUL"
-    check:
-      when defined(windows):
+    when defined(windows):
+      check:
         not winFileName.isFileName()
-      else:
+    else:
+      check:
         winFileName.isFileName()

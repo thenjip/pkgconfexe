@@ -1,4 +1,4 @@
-import pkgconfexe/private/[ functiontypes, utf8, seqindexslice ]
+import pkgconfexe/private/[ functiontypes, utf8 ]
 
 import pkg/[ unicodeplus, zero_functional ]
 
@@ -94,24 +94,16 @@ suite "utf8":
     type TestData = tuple
       data: tuple[
         input: string,
-        slice: SeqIndexSlice,
+        start, n: int,
         pred: Predicate[Rune]
       ]
       expected: Natural
 
     [
+      (("", 0, 3,  Predicate[Rune]((r: Rune) => true)), 0.Natural),
+      (("abcd", 0, 4, Predicate[Rune]((r: Rune) => r.isDigit())), 0.Natural),
       (
-        (
-          "abcd", seqIndexSlice(0, 4), Predicate[Rune]((r: Rune) => r.isDigit())
-        ),
-        0.Natural
-      ),
-      (
-        (
-          "ALP*64dfD",
-          seqIndexSlice(1, 8),
-          Predicate[Rune]((r: Rune) => r.isUpper())
-        ),
+        ("ALP*64dfD", 1, 8, Predicate[Rune]((r: Rune) => r.isUpper())),
         2.Natural
       )
     ].zfun:
@@ -119,8 +111,9 @@ suite "utf8":
         it.TestData
       foreach:
         check:
-          it.data.input.countValidBytes(it.data.slice, it.data.pred) ==
-            it.expected
+          it.data.input.countValidBytes(
+            it.data.start.Natural, it.data.n.Natural, it.data.pred
+          ) == it.expected
 
 
 
