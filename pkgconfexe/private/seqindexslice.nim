@@ -2,13 +2,13 @@ type SeqIndexSlice* = Slice[Natural]
 
 
 
-func seqIndexSlice* (a, b: Natural): SeqIndexSlice =
-  a .. b
-
-
 func seqIndexSlice* (start: Natural; n: Positive): SeqIndexSlice =
-  seqIndexSlice(start, Natural(start + n - 1))
+  start .. Natural(start + n - 1)
 
 
-func seqIndexSlice* [I: SomeInteger](s: Slice[I]): SeqIndexSlice =
-  seqIndexSlice(s.a, s.b)
+func seqIndexSlice* [I: Ordinal](s: Slice[I]): SeqIndexSlice =
+  seqIndexSlice(s.a.Natural, s.len().Positive)
+
+
+func seqIndexSlice* [U, L: Ordinal](hs: HSlice[U, L]): SeqIndexSlice =
+  seqIndexSlice(hs.a.Natural, hs.len().Positive)

@@ -1,32 +1,172 @@
-import pkgconfexe/private/[ scanresult, seqindexslice ]
+import pkgconfexe/private/[ scanresult ]
 
 import pkg/[ zero_functional ]
 
-import std/[ unittest ]
+import std/[ sugar, unittest ]
 
 
 
 suite "scanresult":
-  test "buildScanResult":
-    check:
-      buildScanResult(6412, 0).isNone()
-      buildScanResult(3, 8).isSome()
+  test "someScanResult_start&n":
+    type TestData = tuple
+      data: tuple[start: Natural, n: Positive]
+      expected: ScanResult
 
-
-
-  test "slice":
-    [ (0, 94, 0 .. 93), (6387684, 164, 6387684 .. 6387684 + 164 - 1) ].zfun:
+    [
+      ((0.Natural, 1.Positive), ScanResult(start: 0, n: 1)),
+      ((654891.Natural, 7.Positive), ScanResult(start: 654891, n: 7))
+    ].zfun:
+      map:
+        it.TestData
       foreach:
+        let some = someScanResult(it.data.start, it.data.n)
+
         check:
-          someScanResult(it[0], it[1]).get().slice() == seqIndexSlice(it[2])
+          some == it.expected
+          some.hasResult()
+
+
+  test "someScanResult_slice":
+    type TestData = tuple
+      data: SeqIndexSlice
+      expected: ScanResult
+
+    [
+      (
+        seqIndexSlice(198798 .. 9842613),
+        ScanResult(start: 198798, n: len(198798 .. 9842613))
+      ),
+      (seqIndexSlice(0, 1), ScanResult(start: 0, n: 1))
+    ].zfun:
+      map:
+        it.TestData
+      foreach:
+        let some = someScanResult(it.data)
+
+        check:
+          some == it.expected
+          some.hasResult()
+
+
+  test "emptyScanResult":
+    type TestData = tuple
+      data: Natural
+      expected: ScanResult
+
+    [
+      (0.Natural, ScanResult(start: 0, n: 0)),
+      (12.Natural, ScanResult(start: 12, n: 0))
+    ].zfun:
+      map:
+        it.TestData
+      foreach:
+        let empty = emptyScanResult(it.data)
+
+        check:
+          empty == it.expected
+          not empty.hasResult()
 
 
 
-  test "toOptionScanResult":
+  test "doIfHasResult":
+    (proc () =
+      var checked = false
+      const empty = emptyScanResult(0)
+
+      empty.doIfHasResult(
+        proc (sr: ScanResult) = discard,
+        proc (sr: ScanResult) =
+          checked = true
+
+          check:
+            sr == empty
+      )
+
+      check:
+        checked
+    )()
+
+    (proc () =
+      var checked = false
+      const some = someScanResult(5, 8)
+
+      some.doIfHasResult(
+        proc (sr: ScanResult) =
+          checked = true
+
+          check:
+            sr == some
+        ,
+        proc (sr: ScanResult) = discard
+      )
+
+      check:
+        checked
+    )()
+
+  (proc () =
+    var checked = false
+    const
+      some = someScanResult(64321, 86)
+      someSlice = seqIndexSlice(some.start, some.n)
+
+    some.doIfHasResult(
+      proc (slice: SeqIndexSlice) =
+        checked = true
+
+        check:
+          slice == someSlice
+      ,
+      proc (sr: ScanResult) = discard
+    )
+
     check:
-      { 'a' .. 'r' }.some().toOptionScanResult(5, 7) ==
-        someScanResult(5, 7, { 'a' .. 'r' })
-      seq[int].none().toOptionScanResult(6, 32) ==
-        seq[int].none().toOptionScanResult(53156, 23)
-      (tuple[c: char, i: int]).none().toOptionScanResult(6546, 31656) !=
-        ('1', 0).some().toOptionScanResult(6546, 31656)
+      checked
+  )()
+
+
+
+  test "ifHasResult":
+    check:
+      emptyScanResult(1).ifHasResult(
+        (sr: ScanResult) => false, (sr: ScanResult) => true
+      )
+      someScanResult(98, 5).ifHasResult(
+        (sr: ScanResult) => sr == someScanResult(98, 5),
+        (sr: ScanResult) => false
+      )
+      someScanResult(16, 2).ifHasResult(
+        (slice: SeqIndexSlice) => slice,
+        (sr: ScanResult) => 1.Natural .. 0.Natural
+      ).len() > 0
+
+
+
+  test "flatMapOr":
+    check:
+      not emptyScanResult(0).flatMapOr(
+        (slice: SeqIndexSlice) => someScanResult(0, 1),
+        (sr: ScanResult) => sr
+      ).hasResult()
+
+      emptyScanResult(9).flatMapOr(
+        (sr: ScanResult) => sr,
+        (sr: ScanResult) => someScanResult(64, 1)
+      ).hasResult()
+
+      someScanResult(7, 4).flatMapOr(
+        (sr: ScanResult) => someScanResult(sr.start + sr.n, 1),
+        (sr: ScanResult) => someScanResult(0, 5)
+      ) == someScanResult(11, 1)
+
+
+
+  test "flatMap":
+    check:
+      not emptyScanResult(1).flatMap(
+        (slice: SeqIndexSlice) => someScanResult(slice),
+      ).hasResult()
+
+      someScanResult(76, 6).flatMap(
+        (slice: SeqIndexSlice) => someScanResult(slice),
+      ) == someScanResult(76, 6)

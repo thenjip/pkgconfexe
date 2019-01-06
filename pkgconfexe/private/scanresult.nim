@@ -3,6 +3,9 @@ import seqindexslice
 import std/[ sugar ]
 
 
+export seqindexslice
+
+
 
 type ScanResult* = object
   start*: Natural ## The index where scanning starts.
@@ -10,8 +13,21 @@ type ScanResult* = object
 
 
 
+func someScanResult* (start: Natural; n: Positive): ScanResult =
+  ScanResult(start: start, n: n)
+
+
+func someScanResult* (slice: SeqIndexSlice): ScanResult =
+  result = someScanResult(slice.a, slice.len().Positive)
+
+
+func emptyScanResult* (start: Natural): ScanResult =
+  ScanResult(start: start, n: Natural.low())
+
+
+
 func hasResult* (self: ScanResult): bool =
-  ((n: Natural) => n > type(n).low())(self.n)
+  ((n: Natural) => n > Natural.low())(self.n)
 
 
 
@@ -20,7 +36,7 @@ func slice (self: ScanResult): SeqIndexSlice =
 
 
 
-proc doIfHasResult* [T](
+proc doIfHasResult* (
   self: ScanResult; thenProc, elseProc: proc (self: ScanResult)
 ) =
   if self.hasResult():
@@ -29,15 +45,20 @@ proc doIfHasResult* [T](
     elseProc(self)
 
 
-proc doIfHasResult* [T](
+proc doIfHasResult* (
   self: ScanResult;
   thenProc: proc (slice: SeqIndexSlice);
   elseProc: proc (self: ScanResult)
 ) =
-  if self.hasResult():
-    thenProc(self.slice())
-  else:
-    elseProc(self)
+  self.doIfHasResult((self: ScanResult) => thenProc(self.slice()), elseProc)
+
+
+proc doIfHasResult* (self: ScanResult; thenProc: proc (self: ScanResult)) =
+  self.doIfHasResult(thenProc, proc (self: ScanResult) = discard)
+
+
+proc doIfHasResult* (self: ScanResult; thenProc: proc (self: SeqIndexSlice)) =
+  self.doIfHasResult(thenProc, proc (self: ScanResult) = discard)
 
 
 
@@ -55,10 +76,37 @@ func ifHasResult* [T](
   thenFunc: func (slice: SeqIndexSlice): T;
   elseFunc: func (self: ScanResult): T
 ): T =
-  if self.hasResult():
-    thenFunc(self.slice())
-  else:
-    elseFunc(self)
+  self.ifHasResult((self: ScanResult) => thenFunc(self.slice()), elseFunc)
+
+
+
+func flatMapOr* (
+  self: ScanResult;
+  f: func (self: ScanResult): ScanResult;
+  otherwise: func (self: ScanResult): ScanResult
+): ScanResult =
+  self.ifHasResult(f, otherwise)
+
+
+func flatMapOr* (
+  self: ScanResult;
+  f: func (slice: SeqIndexSlice): ScanResult;
+  otherwise: func (self: ScanResult): ScanResult
+): ScanResult =
+  self.ifHasResult(f, otherwise)
+
+
+
+func flatMap* (
+  self: ScanResult; f: func (self: ScanResult): ScanResult
+): ScanResult =
+  self.flatMapOr(f, (self: ScanResult) => emptyScanResult(self.start))
+
+
+func flatMap* (
+  self: ScanResult; f: func (slice: SeqIndexSlice): ScanResult
+): ScanResult =
+  self.flatMapOr(f, (self: ScanResult) => emptyScanResult(self.start))
 
 
 

@@ -1,7 +1,7 @@
 const Tests = [
-  "zfunchelper",
-  "optional",
+  "seqindexslice",
   "scanresult",
+  "zfunchelper",
   "utf8",
   "identifier",
   "filename",
