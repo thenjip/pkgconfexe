@@ -1,9 +1,9 @@
-import pkgconfexe/private/[ functiontypes, utf8 ]
+import pkgconfexe/private/[ utf8 ]
 
 import pkg/[ unicodeplus, zero_functional ]
 
 import std/unicode except isUpper
-import std/[ sugar, unittest ]
+import std/[ unittest ]
 
 
 
@@ -87,49 +87,3 @@ suite "utf8":
       foreach:
         check:
           not it.toRune().isSpace()
-
-
-
-  test "countValidBytes":
-    type TestData = tuple
-      data: tuple[
-        input: string,
-        start, n: int,
-        pred: Predicate[Rune]
-      ]
-      expected: Natural
-
-    [
-      (("", 1, 3,  Predicate[Rune]((r: Rune) => true)), 0.Natural),
-      (("abcd", 0, 4, Predicate[Rune]((r: Rune) => r.isDigit())), 0.Natural),
-      (
-        ("ALP*64dfD", 1, 8, Predicate[Rune]((r: Rune) => r.isUpper())),
-        2.Natural
-      )
-    ].zfun:
-      map:
-        it.TestData
-      foreach:
-        check:
-          it.data.input.countValidBytes(
-            it.data.start.Natural, it.data.n.Natural, it.data.pred
-          ) == it.expected
-
-
-
-  test "skipWhiteSpaces":
-    type TestData = tuple[data: string, expected: Natural]
-
-    [
-      ("", 0.Natural),
-      ("abc", 0.Natural),
-      (" abc", 1.Natural),
-      (" a bc", 1.Natural),
-      (" \t abc", 3.Natural),
-      (" \nabc", 1.Natural)
-    ].zfun:
-      map:
-        it.TestData
-      foreach:
-        check:
-          it.data.skipSpaces() == it.expected
