@@ -1,9 +1,9 @@
-import seqindexslice, utf8, zfunchelper
+import seqindexslice, scanhelper, utf8
 
 import pkg/[ unicodedb ]
 
 from std/os import AltSep, Curdir, DirSep, ParDir, PathSep
-import std/[ unicode ]
+import std/[ sequtils, unicode ]
 
 
 
@@ -66,7 +66,7 @@ func isValid (r: Rune): bool =
   r notin ReservedChars and not r.isControl()
 
 
-func checkRunes (x: string; firstRune, lastRune: Rune): bool =
+func checkRunes* (x: string; firstRune, lastRune: Rune): bool =
   firstRune != ShortOptionPrefix and
     lastRune notin ForbiddenLastChars and
     x.countValidBytes(x.low(), x.len(), isValid) == x.len()
@@ -75,11 +75,10 @@ func checkRunes (x: string; firstRune, lastRune: Rune): bool =
 func isFileName* (x: string): bool =
   x.len() > 0 and
     x.checkRunes(x.runeAt(x.low()), x.runeAt(x.high())) and
-    ReservedName.zeroFunc(all($it != x))
+    toSeq(ReservedName.items()).allIt($it != x)
 
 
 
 static:
-  ReservedName.zfun:
-    foreach:
-      doAssert(($it).isUtf8())
+  for n in ReservedName:
+      doAssert(($n).isUtf8())

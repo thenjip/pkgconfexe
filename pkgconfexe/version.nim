@@ -1,4 +1,4 @@
-import private/[ scanresult, seqindexslice, utf8 ]
+import private/[ scanhelper, scanresult, seqindexslice, utf8 ]
 
 import pkg/[ unicodedb ]
 

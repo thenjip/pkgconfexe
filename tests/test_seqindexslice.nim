@@ -1,8 +1,6 @@
 import pkgconfexe/private/[ seqindexslice ]
 
-import pkg/[ zero_functional ]
-
-import std/[ unittest ]
+import std/[ sequtils, unittest ]
 
 
 
@@ -12,15 +10,12 @@ suite "seqindexslice":
       data: tuple[start: Natural, n: Positive]
       expected: SeqIndexSlice
 
-    [
+    for it in [
       ((0.Natural, 1.Positive), 0.Natural .. 0.Natural),
       ((56184.Natural, 25.Positive), 56184.Natural .. 56208.Natural)
-    ].zfun:
-      map:
-        it.TestData
-      foreach:
-        check:
-          seqIndexSlice(it.data.start, it.data.n) == it.expected
+    ].mapIt(it.TestData):
+      check:
+        seqIndexSlice(it.data.start, it.data.n) == it.expected
 
 
   test "constructor_slice":

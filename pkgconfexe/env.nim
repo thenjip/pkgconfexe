@@ -1,9 +1,7 @@
-import private/[ filename, fphelper, identifier, utf8 ]
-
-import pkg/zero_functional
+import private/[ filename, identifier, utf8 ]
 
 from std/os import PathSep
-import std/[ strformat, strutils, unicode ]
+import std/[ sequtils, strformat, strutils, unicode ]
 
 
 
@@ -37,10 +35,11 @@ func toString (e: EnvVarValue; envVars: var set[EnvVar]): string {.
 func buildEnv* (env: seq[EnvVarValue]): string {. raises: [ ValueError ] .} =
   var envVars: set[EnvVar]
 
-  result = env.callZFunc(map(it.toString(envVars))).join($' ')
+  result = env.mapIt(it.toString(envVars)).join($' ')
 
 
 
 static:
-  EnvVar-->foreach(doAssert(($it).isIdentifier()))
+  for it in EnvVar:
+    doAssert(($it).isIdentifier())
 

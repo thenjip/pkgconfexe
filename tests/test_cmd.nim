@@ -1,6 +1,6 @@
 import pkgconfexe/cmd
 
-import pkg/[ regex, zero_functional ]
+import pkg/[ regex ]
 
 from std/ospaths import DirSep
 import std/[ ospaths, strformat, unittest ]
@@ -44,10 +44,9 @@ suite "cmd":
 
 
   test "getCFlags":
-    [ CFlags1, CFlags2 ].zfun:
-      foreach:
-        check:
-          it.contains(re"^-Idummy -Ideps\s*$")
+    for it in [ CFlags1, CFlags2 ]:
+      check:
+        it.contains(re"^-Idummy -Ideps\s*$")
 
 
   test "getLdFlags":

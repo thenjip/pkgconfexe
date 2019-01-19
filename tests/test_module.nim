@@ -1,8 +1,6 @@
 import pkgconfexe/[ module ]
 import pkgconfexe/private/[ optional, scanresult ]
 
-import pkg/[ zero_functional ]
-
 import std/[ sequtils, unittest ]
 
 
@@ -26,24 +24,22 @@ const SomeTestData = [
     "gtk+-3.0",
     buildModule("gtk+-3.0", Comparator.LessEq, "3.10.0")
   )
-]-->map(it.TestData)
+].mapIt(it.TestData)
 
 
 
 suite "module":
   test "$":
-    SomeTestData.zfun:
-      foreach:
-        check:
-          $it.expectedMod == it.expectedStr
+    for it in SomeTestData:
+      check:
+        $it.expectedMod == it.expectedStr
 
 
 
   test "scanModule":
-    SomeTestData.zfun:
-      foreach:
-        check:
-          it.input.scanModule().get().value() == it.expectedMod
+    for it in SomeTestData:
+      check:
+        it.input.scanModule().get().value() == it.expectedMod
 
 
 

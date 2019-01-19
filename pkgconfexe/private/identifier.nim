@@ -1,4 +1,4 @@
-import utf8
+import scanhelper, utf8
 
 import pkg/[ unicodedb, unicodeplus ]
 

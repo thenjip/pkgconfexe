@@ -1,8 +1,6 @@
 import env, module
 import private/[ filename, fphelper, utf8 ]
 
-import pkg/zero_functional
-
 import std/[ os, strformat, strutils ]
 
 
@@ -77,5 +75,6 @@ func getLdFlags* (modules: seq[Module]; env: seq[EnvVarValue]): string {.
 
 static:
   doAssert(CmdName.isFileName())
-  Action-->foreach(doAssert(($it).isUtf8()))
+  for a in Action:
+    doAssert(($it).isUtf8())
 

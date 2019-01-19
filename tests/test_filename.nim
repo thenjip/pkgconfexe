@@ -1,7 +1,5 @@
 import pkgconfexe/private/[ filename ]
 
-import pkg/[ zero_functional ]
-
 import std/[ os, sequtils, unittest ]
 
 
@@ -12,18 +10,23 @@ suite "filename":
       not "".isFileName()
       "Zfmbkç9^`{'à’Ω§ŁÐŊª® Æħ̉̉ĸłþ¨¤؆".isFileName()
 
-    let files = toSeq("*".walkFiles())
-
-    files.zfun:
-      foreach:
-        echo it
-        check:
-          it.isFileName()
+    for f in toSeq("*".walkFiles()):
+      echo f
+      check:
+        f.isFileName()
 
     const winFileName = "NUL"
-    when defined(windows):
-      check:
+
+    check:
+      when defined(windows):
         not winFileName.isFileName()
-    else:
-      check:
+      else:
         winFileName.isFileName()
+
+
+
+  test "isFileName_const":
+    const valid = "é_àk".isFileName()
+
+    check:
+      valid

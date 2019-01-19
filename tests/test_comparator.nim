@@ -1,9 +1,7 @@
 import pkgconfexe/[ comparator ]
 import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import pkg/[ zero_functional ]
-
-import std/[ options, unicode, unittest ]
+import std/[ options, unicode, sequtils, unittest ]
 
 
 
@@ -13,34 +11,30 @@ const SomeInvalidComparators = [ "=", "& ", "++", "-", "^" ]
 
 suite "comparator":
   test "isComparator":
-    Comparator.zfun:
-      foreach:
-        check:
-          ($it).isComparator()
+    for c in Comparator:
+      check:
+        ($c).isComparator()
 
-    SomeInvalidComparators.zfun:
-      foreach:
-        check:
-          not it.isComparator()
+    for c in SomeInvalidComparators:
+      check:
+        not c.isComparator()
 
 
 
   test "option":
-    Comparator.zfun:
-      foreach:
-        check:
-          it.option() == ComparatorOptions[it]
+    for c in Comparator:
+      check:
+        c.option() == ComparatorOptions[c]
 
 
 
   test "scanComparator":
     (proc () =
-      [ "", "ép>=" ].zfun:
-        foreach:
-          let scanResult = it.scanComparator()
+      for it in [ "", "ép>=" ]:
+        let scanResult = it.scanComparator()
 
-          check:
-            not scanResult.hasResult()
+        check:
+          not scanResult.hasResult()
     )()
 
     type TestData = tuple
@@ -48,15 +42,14 @@ suite "comparator":
       start: int
       expected: Comparator
 
-    [ ("==3.0", 0, Comparator.Equal), ("g<=µ", 1, Comparator.LessEq) ].zfun:
-      map:
-        it.TestData
-      foreach:
-        let
-          scanResult = it.input.scanComparator(it.start)
-          slicedIn = it.input[seqIndexSlice(scanResult.start, scanResult.n)]
+    for it in [
+      ("==3.0", 0, Comparator.Equal), ("g<=µ", 1, Comparator.LessEq)
+    ].mapIt(it.TestData):
+      let
+        scanResult = it.input.scanComparator(it.start)
+        slicedIn = it.input[seqIndexSlice(scanResult.start, scanResult.n)]
 
-        check:
-          scanResult.hasResult()
-          slicedIn.isComparator()
-          slicedIn.findComparator().get() == it.expected
+      check:
+        scanResult.hasResult()
+        slicedIn.isComparator()
+        slicedIn.findComparator().get() == it.expected

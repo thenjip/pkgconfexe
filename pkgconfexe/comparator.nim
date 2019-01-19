@@ -1,8 +1,6 @@
 import private/[ scanresult, utf8 ]
 
-import pkg/[ zero_functional ]
-
-import std/[ options, tables, unicode ]
+import std/[ options, sequtils, tables, unicode ]
 
 
 
@@ -14,7 +12,9 @@ type Comparator* {. pure .} = enum
 
 
 const
-  ComparatorMap* = toOrderedTable(Comparator-->map((($it).toRunes(), it)))
+  ComparatorMap* = toOrderedTable(toSeq(Comparator.items()).mapIt(
+    (($it).toRunes(), it))
+  )
 
   ComparatorOptions*: array[Comparator, string] = [
     "--max-version",
@@ -72,9 +72,8 @@ func scanComparator* (input: string): ScanResult =
 
 
 static:
-  Comparator.zfun:
-    foreach:
-      doAssert(($it).isUtf8())
-      doAssert(($it).len() == ComparatorNChars)
-      doAssert(($it).toRunes().len() == ComparatorNChars)
-      doAssert(it.option().isUtf8())
+  for c in Comparator:
+    doAssert(($c).isUtf8())
+    doAssert(($c).len() == ComparatorNChars)
+    doAssert(($c).toRunes().len() == ComparatorNChars)
+    doAssert(c.option().isUtf8())

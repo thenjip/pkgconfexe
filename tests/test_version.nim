@@ -1,30 +1,26 @@
 import pkgconfexe/[ version ]
 import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import pkg/[ zero_functional ]
-
 import std/[ strformat, unittest ]
 
 
 
 suite "version":
   test "isVersion":
-    [ "", "o 6" ].zfun:
-      foreach:
-        check:
-          not it.isVersion()
+    for it in [ "", "o 6" ]:
+      check:
+        not it.isVersion()
 
-    [
+    for it in [
       "1.1983.0567",
       "0.3.6",
       "R5",
       "1:6.9.2",
       "1.0-4~ppa+xenial28",
       "3.0+git2018.12.25-00.00.00"
-    ].zfun:
-      foreach:
-        check:
-          it.isVersion()
+    ]:
+      check:
+        it.isVersion()
 
 
   test "scanVersion":

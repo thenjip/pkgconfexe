@@ -1,6 +1,4 @@
-import pkg/zero_functional
-
-import std/strformat
+import std/[ strformat ]
 
 
 
@@ -15,4 +13,5 @@ proc doExec (file: string) =
 
 
 
-Tests-->foreach(doExec(it))
+for t in Tests:
+  t.doExec()

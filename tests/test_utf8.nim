@@ -1,38 +1,33 @@
 import pkgconfexe/private/[ utf8 ]
 
-import pkg/[ unicodeplus, zero_functional ]
+import pkg/[ unicodeplus ]
 
 import std/unicode except isUpper
-import std/[ unittest ]
+import std/[ sequtils, unittest ]
 
 
 
 suite "utf8":
   test "AsciiChar":
-    [ '\127', '\x03', '\0', '\t', '6' ].zfun:
-      foreach:
-        check:
-          it in { AsciiChar.low() .. AsciiChar.high() }
-    [ '\xff', '\x80', '\x9A' ].zfun:
-      foreach:
-        check:
-          it isnot AsciiChar
+    for it in [ '\127', '\x03', '\0', '\t', '6' ]:
+      check:
+        it in { AsciiChar.low() .. AsciiChar.high() }
+    for it in [ '\xff', '\x80', '\x9A' ]:
+      check:
+        it isnot AsciiChar
 
 
 
   test "firstRune":
     type TestData = tuple[data: string, expected: (Rune, Positive)]
 
-    [
+    for it in [
       (" p", (" ".runeAt(0), 1.Positive)),
       ("=mdv", ("=".runeAt(0), 1.Positive)),
       ("éf", ("é".runeAt(0), 2.Positive))
-    ].zfun:
-      map:
-        it.TestData
-      foreach:
-        check:
-          it.data.firstRune() == it.expected
+    ].mapIt(it.TestData):
+      check:
+        it.data.firstRune() == it.expected
 
 
 
@@ -51,10 +46,9 @@ suite "utf8":
   test "RuneInCharSet":
     const SomeCharSet = { 'a'..'z' }
 
-    SomeCharSet.zfun:
-      foreach:
-        check:
-          it.toRune() in SomeCharSet
+    for it in SomeCharSet:
+      check:
+        it.toRune() in SomeCharSet
 
 
 
@@ -66,24 +60,20 @@ suite "utf8":
 
 
   test "isControl":
-    [ '\n', '\0', '\a', '\r', '\t' ].zfun:
-      foreach:
-        check:
-          it.toRune().isControl()
+    for it in [ '\n', '\0', '\a', '\r', '\t' ]:
+      check:
+        it.toRune().isControl()
 
-    [ 'a', ' ', '1', '\\' ].zfun:
-      foreach:
-        check:
-          not it.toRune().isControl()
+    for it in [ 'a', ' ', '1', '\\' ]:
+      check:
+        not it.toRune().isControl()
 
 
   test "isSpace":
-    [ ' ', '\t' ].zfun:
-      foreach:
-        check:
-          it.toRune().isSpace()
+    for it in [ ' ', '\t' ]:
+      check:
+        it.toRune().isSpace()
 
-    [ '\n', '\0', '\a', '\r' ].zfun:
-      foreach:
-        check:
-          not it.toRune().isSpace()
+    for it in [ '\n', '\0', '\a', '\r' ]:
+      check:
+        not it.toRune().isSpace()
