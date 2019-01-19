@@ -1,7 +1,9 @@
 const Tests = [
+  "fphelper",
+  "utf8",
   "seqindexslice",
   "scanresult",
-  "utf8",
+  "scanhelper",
   "identifier",
   "filename",
   "package",
