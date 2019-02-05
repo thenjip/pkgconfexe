@@ -3,7 +3,7 @@ import pkgconfexe/private/[ utf8 ]
 import pkg/[ unicodeplus ]
 
 import std/unicode except isUpper
-import std/[ sequtils, unittest ]
+import std/[ unittest ]
 
 
 
@@ -17,17 +17,47 @@ suite "utf8":
         it isnot AsciiChar
 
 
+  test "toRune":
+    type TestData = tuple[data: AsciiChar, expected: Rune]
 
-  test "firstRune":
-    type TestData = tuple[data: string, expected: (Rune, Positive)]
+    for it in [
+      ('0'.AsciiChar, "0".runeAt(0)),
+      ('\127'.AsciiChar, ($'\127').runeAt(0)),
+      ('\n'.AsciiChar, ($'\n').runeAt(0))
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.data.toRune() == it.expected
+      )(it.TestData)
+
+
+
+  test "runeInfoAt":
+    type TestData = tuple[data: string, index: Natural, expected: RuneInfo]
+
+    for it in [
+      ("dqacl", 3.Natural, ("c".runeAt(0), 1.Positive)),
+      ("=mdv", 0.Natural, ("=".runeAt(0), 1.Positive)),
+      ("ħéf", "ħ".len().Natural, ("é".runeAt(0), "é".runeLenAt(0).Positive))
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.data.runeInfoAt(it.index) == it.expected
+      )(it.TestData)
+
+
+  test "firstRuneInfo":
+    type TestData = tuple[data: string, expected: RuneInfo]
 
     for it in [
       (" p", (" ".runeAt(0), 1.Positive)),
       ("=mdv", ("=".runeAt(0), 1.Positive)),
       ("éf", ("é".runeAt(0), 2.Positive))
-    ].mapIt(it.TestData):
-      check:
-        it.data.firstRune() == it.expected
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.data.firstRuneInfo() == it.expected
+      )(it.TestData)
 
 
 

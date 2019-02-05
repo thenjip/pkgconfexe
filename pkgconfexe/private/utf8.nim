@@ -1,32 +1,42 @@
 import pkg/[ unicodedb ]
 
-import std/[ sugar ]
 import std/unicode except isSpace
 
 
 
-## The ASCII subset of Nim's char type.
-type AsciiChar* = range[char.low() .. int8.high().char]
 
+type
+  ## The ASCII subset of Nim's char type.
+  AsciiChar* = range[char.low() .. int8.high().char]
 
-
-func convertRuneInfo* (x: tuple[r: Rune, len: int]): (Rune, Positive) =
-  (x.r, x.len.Positive)
-
-
-
-func firstRune* (s: string): tuple[r: Rune, len: Positive] =
-  result = (Rune(-1), Positive.high())
-
-  var i = s.low()
-
-  s.fastRuneAt(i, result.r, true)
-  result.len = i
+  RuneInfo* = tuple
+    r: Rune
+    len: Positive
 
 
 
 func toRune* (c: AsciiChar): Rune =
-  ($c).firstRune().r
+  (func (s: string): auto =
+    s.runeAt(s.low())
+  )($c)
+
+
+
+func convertRuneInfo* (x: tuple[r: Rune, len: int]): RuneInfo =
+  (x.r, x.len.Positive)
+
+
+
+func runeInfoAt* (s: string; i: Natural): RuneInfo =
+  result = (r: Rune(-1), len: result.len.type().high())
+  var index = i
+
+  s.fastRuneAt(index, result.r, true)
+  result.len = index - i
+
+
+func firstRuneInfo* (s: string): RuneInfo =
+  s.runeInfoAt(s.low())
 
 
 
