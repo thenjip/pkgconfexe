@@ -1,5 +1,5 @@
 const
-  DataDir = "data"
+  DataDir* = "data"
 
-  DepsPkg = "deps"
-  DummyPkg = "dummy"
+  DepsPkg* = "deps"
+  DummyPkg* = "dummy"

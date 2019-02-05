@@ -1,8 +1,6 @@
 import std/[ strformat ]
 
-
-
-include "common.nims"
+import "common.nims"
 
 
 
