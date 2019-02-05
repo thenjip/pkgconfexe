@@ -7,14 +7,14 @@ export seqindexslice
 
 
 
-type ScanResult* = object
-  start*: Natural ## The index where scanning starts.
-  n*: Natural ## The number of matching units (chars, bytes, ...).
+type ScanResult* = tuple
+  start: Natural ## The index where scanning starts.
+  n: Natural ## The number of matching units (chars, bytes, ...).
 
 
 
 func someScanResult* (start: Natural; n: Positive): ScanResult =
-  ScanResult(start: start, n: n)
+  (start: start, n: n.Natural)
 
 
 func someScanResult* (slice: SeqIndexSlice): ScanResult =
@@ -22,7 +22,7 @@ func someScanResult* (slice: SeqIndexSlice): ScanResult =
 
 
 func emptyScanResult* (start: Natural): ScanResult =
-  ScanResult(start: start, n: Natural.low())
+  (start: start, n: Natural.low())
 
 
 
