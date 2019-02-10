@@ -3,7 +3,6 @@ const Tests* = [
   "seqindexslice",
   "scanresult",
   "scanhelper",
-  "identifier",
   "filename",
 #  "package",
 #  "comparator",
