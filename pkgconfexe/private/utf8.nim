@@ -1,6 +1,9 @@
-import pkg/[ unicodedb ]
+when nimvm:
+  discard
+else:
+  import pkg/[ unicodedb ]
 
-import std/unicode except isSpace
+import std/[ sets, unicode ]
 
 
 
@@ -16,13 +19,34 @@ type
 
 
 func toRune* (c: AsciiChar): Rune =
-  (func (s: string): auto =
+  (func (s: string): Rune =
     s.runeAt(s.low())
   )($c)
 
 
 
-func convertRuneInfo* (x: tuple[r: Rune, len: int]): RuneInfo =
+when nimvm:
+  const
+    ControlCharSet = { '\x00' .. '\x1F', '\x7F', '\x80' .. '\x9F' }
+    WhiteSpaceCharSet = toSet[Rune](
+      @[ ' '.toRune(), 0x00A0.Rune, 0x1680.Rune ] &
+        (func (): seq[Rune] =
+          const slice = 0x2000 .. 0x200A
+          result = newSeqOfCap[Rune](slice.len())
+
+          for it in slice:
+            result.add(it.Rune)
+        )() &
+        @[ 0x202F.Rune, 0x205F.Rune, 0x3000.Rune ]
+    )
+else:
+  discard
+
+
+
+func convertRuneInfo* [I: SomeInteger and not Positive](
+  x: tuple[r: Rune, len: I]
+): RuneInfo =
   (x.r, x.len.Positive)
 
 
@@ -63,10 +87,7 @@ func firstChar (s: string): char =
 
 func `in`* (r: Rune; s: set[char]): bool =
   (func (first: char): bool =
-    if first > AsciiChar.high():
-      false
-    else:
-      first in s
+    first <= AsciiChar.high() and first in s
   )(r.toUTF8().firstChar())
 
 
@@ -86,9 +107,18 @@ func isUtf8* (x: string{~lit}): bool =
 
 ## Unicdoe control character.
 func isControl* (r: Rune): bool =
-  r.unicodeCategory() == ctgCc
+  when nimvm:
+    r in ControlCharSet
+  else:
+    r.unicodeCategory() == ctgCc
 
 
-## We consider ``'\t'`` as a space unlike Unicode for string scanning purposes.
-func isSpace* (r: Rune): bool =
-  r.unicodeCategory() == ctgZs or r == '\t'
+func isUnicodeWhiteSpace(r: Rune): bool =
+  when nimvm:
+    r in WhiteSpaceCharSet
+  else:
+    r.unicodeCategory() == ctgZs
+
+
+func isWhiteSpaceOrTab* (r: Rune): bool =
+  r.isUnicodeWhiteSpace() or r == '\t'

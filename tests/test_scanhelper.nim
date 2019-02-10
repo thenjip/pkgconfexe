@@ -3,7 +3,7 @@ import pkgconfexe/private/[ scanhelper, utf8 ]
 import pkg/[ unicodeplus ]
 
 import std/unicode except isUpper
-import std/[ sequtils, sugar, unittest ]
+import std/[ sugar, unittest ]
 
 
 
@@ -12,22 +12,25 @@ suite "scanhelper":
     type TestData = tuple
       data: tuple[
         input: string,
-        start, n: int,
-        pred: func (r: Rune): bool {. nimcall .}
+        start, n: Natural,
+        pred: proc (r: Rune): bool {. locks: 0, nimcall, noSideEffect .}
       ]
       expected: Natural
 
     for it in [
-      (("", 1, 3, (r: Rune) => r.isSpace()), 0.Natural),
-      (("abcd", 0, 4, (r: Rune) => r.isDigit()), 0.Natural),
-      (("ALP*64dfD", 1, 8, (r: Rune) => r.isUpper()), 2.Natural)
-    ].mapIt(it.TestData):
-      check:
-        it.data.input.countValidBytes(
-          it.data.start.Natural, it.data.n.Natural, it.data.pred
-        ) == it.expected
+      (("", 1.Natural, 3.Natural, (r: Rune) => r.isPrintable()), 0.Natural),
+      (("abcd", 0.Natural, 4.Natural, (r: Rune) => r.isDigit()), 0.Natural),
+      (("ALP*64dfD", 1.Natural, 8.Natural, (r: Rune) => r.isUpper()), 2.Natural)
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.data.input.countValidBytes(
+            it.data.start, it.data.n, it.data.pred
+          ) == it.expected
+      )(it)
 
-    (proc () =
+
+    test "countValidBytes_const":
       const
         input = "zŋßð¶"
         n = input.countValidBytes(
@@ -36,11 +39,10 @@ suite "scanhelper":
 
       check:
         n == input.len() - 1
-    )()
 
 
 
-  test "skipSpaces":
+  test "skipWhiteSpaces":
     type TestData = tuple[data: string, expected: Natural]
 
     for it in [
@@ -50,6 +52,8 @@ suite "scanhelper":
       (" a bc", 1.Natural),
       (" \t abc", 3.Natural),
       (" \nabc", 1.Natural)
-    ].mapIt(it.TestData):
-      check:
-        it.data.skipSpaces() == it.expected
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.data.skipWhiteSpaces() == it.expected
+      )(it)

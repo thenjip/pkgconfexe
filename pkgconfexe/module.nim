@@ -34,10 +34,10 @@ func scanModule* (input: string; start: Natural): Optional[ScanResult[Module]] =
   input.scanPackage(start).flatMap(
     func (pkgSlice: SeqIndexSlice): Optional[ScanResult[Module]] =
       input.scanComparator(
-        ((i: Natural) => i + input.skipSpaces(i))(pkgSlice.b + 1)
+        ((i: Natural) => i + input.skipWhiteSpaces(i))(pkgSlice.b + 1)
       ).flatMap((cmpSlice: SeqIndexSlice, cmp: Comparator) =>
         input.scanVersion(
-          ((i: Natural) => i + input.skipSpaces(i))(cmpSlice.b + 1)
+          ((i: Natural) => i + input.skipWhiteSpaces(i))(cmpSlice.b + 1)
         ).flatMap((versionSlice: SeqIndexSlice) =>
           someScanResult(
             start,

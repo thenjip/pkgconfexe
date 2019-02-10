@@ -18,10 +18,12 @@ suite "filename":
     const winFileName = "NUL"
 
     check:
-      when defined(windows):
-        not winFileName.isFileName()
-      else:
-        winFileName.isFileName()
+      (func (isFile: bool): bool =
+        when defined(windows):
+          not isFile
+        else:
+          isFile
+      )(winFileName.isFileName())
 
 
 

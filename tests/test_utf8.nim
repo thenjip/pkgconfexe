@@ -3,7 +3,7 @@ import pkgconfexe/private/[ utf8 ]
 import pkg/[ unicodeplus ]
 
 import std/unicode except isUpper
-import std/[ unittest ]
+import std/[ sequtils, unittest ]
 
 
 
@@ -28,7 +28,7 @@ suite "utf8":
       (proc (it: TestData) =
         check:
           it.data.toRune() == it.expected
-      )(it.TestData)
+      )(it)
 
 
 
@@ -43,7 +43,7 @@ suite "utf8":
       (proc (it: TestData) =
         check:
           it.data.runeInfoAt(it.index) == it.expected
-      )(it.TestData)
+      )(it)
 
 
   test "firstRuneInfo":
@@ -57,7 +57,7 @@ suite "utf8":
       (proc (it: TestData) =
         check:
           it.data.firstRuneInfo() == it.expected
-      )(it.TestData)
+      )(it)
 
 
 
@@ -99,11 +99,27 @@ suite "utf8":
         not it.toRune().isControl()
 
 
-  test "isSpace":
+  test "isWhiteSpaceOrTab":
     for it in [ ' ', '\t' ]:
       check:
-        it.toRune().isSpace()
+        it.toRune().isWhiteSpaceOrTab()
 
     for it in [ '\n', '\0', '\a', '\r' ]:
       check:
-        not it.toRune().isSpace()
+        not it.toRune().isWhiteSpaceOrTab()
+
+
+  test "isWhiteSpaceOrTab_const":
+    const
+      valid_results = [ ' ', '\t' ].mapIt(it.toRune().isWhiteSpaceOrTab())
+      invalid_results = [ '\n', '\0', '\a', '\r' ].mapIt(
+        it.toRune().isWhiteSpaceOrTab()
+      )
+
+    for r in valid_results:
+      check:
+        r
+
+    for r in invalid_results:
+      check:
+        not r

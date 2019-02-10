@@ -1,11 +1,20 @@
 import utf8
 
-import std/unicode except isSpace, runeAt
+import std/[ unicode ]
 
 
 
-iterator runesWithLen* (s: string): RuneInfo =
-  var i = 0.Natural
+iterator runesWithLen (s: string; start, nMax: Natural): RuneInfo =
+  var i = start
+
+  while i < s.len() and i < start + nMax:
+    let result = s.runeInfoAt(i)
+    i += result.len
+    yield result
+
+
+iterator runesWithLen (s: string; start: Natural): RuneInfo =
+  var i = start
 
   while i < s.len():
     let result = s.runeInfoAt(i)
@@ -22,37 +31,48 @@ iterator runesWithLen* (s: string): RuneInfo =
   If``start`` is greater than ``input.high()``, returns 0.
 ]##
 func countValidBytes* (
-  input: string; start, nMax: Natural; pred: func (r: Rune): bool
+  input: string;
+  start, nMax: Natural;
+  pred: proc (r: Rune): bool {. locks: 0, noSideEffect .}
 ): Natural =
-  if start > input.high():
-    0
-  else:
-    (func (): result.type() =
-      result = 0
+  result = 0
 
-      for ri in input.runesWithLen():
-        if not pred(ri.r):
-          break
+  for ri in input.runesWithLen(start, nMax):
+    if not pred(ri.r):
+      break
 
-        result += ri.len
-    )()
+    result += ri.len
 
 
 func countValidBytes* (
-  input: string; start: Natural; pred: func (r: Rune): bool
+  input: string;
+  start: Natural;
+  pred: proc (r: Rune): bool {. locks: 0, noSideEffect .}
 ): Natural =
-  input.countValidBytes(start, input.len() - start, pred)
+  result = 0
+
+  for ri in input.runesWithLen(start):
+    if not pred(ri.r):
+      break
+
+    result += ri.len
+
+
+func countValidBytes* (
+  input: string; pred: proc (r: Rune): bool {. locks: 0, noSideEffect .}
+): Natural =
+  input.countValidBytes(input.low(), pred)
 
 
 
-func skipSpaces* (input: string; start: Natural; nMax: Natural): Natural =
-  input.countValidBytes(start, nMax, isSpace)
+func skipWhiteSpaces* (input: string; start: Natural; nMax: Natural): Natural =
+  input.countValidBytes(start, nMax, isWhiteSpaceOrTab)
 
 
-func skipSpaces* (input: string; start: Natural): Natural =
-  input.skipSpaces(start, input.len() - start)
+func skipWhiteSpaces* (input: string; start: Natural): Natural =
+  input.skipWhiteSpaces(start, input.len() - start)
 
 
 # Skip spaces starting at ``input.low()``.
-func skipSpaces* (input: string): Natural =
-  input.skipSpaces(input.low())
+func skipWhiteSpaces* (input: string): Natural =
+  input.skipWhiteSpaces(input.low())

@@ -1,9 +1,7 @@
-import seqindexslice, scanhelper, utf8
-
-import pkg/[ unicodedb ]
+import scanhelper, utf8
 
 from std/os import AltSep, Curdir, DirSep, ParDir, PathSep
-import std/[ sequtils, unicode ]
+import std/[ unicode ]
 
 
 
@@ -62,23 +60,29 @@ else:
 
 
 
+func isReservedName (x: string): bool =
+  result = false
+
+  for rn in ReservedName:
+    if x == $rn:
+      return true
+
+
 func isValid (r: Rune): bool =
   r notin ReservedChars and not r.isControl()
 
 
-func checkRunes* (x: string; firstRune, lastRune: Rune): bool =
-  firstRune != ShortOptionPrefix and
-    lastRune notin ForbiddenLastChars and
-    x.countValidBytes(x.low(), x.len(), isValid) == x.len()
+func checkRunes* (x: string): bool =
+  x.runeAt(x.low()) != ShortOptionPrefix and
+    x.runeAt(x.high()) notin ForbiddenLastChars and
+    x.countValidBytes(isValid) == x.len()
 
 
 func isFileName* (x: string): bool =
-  x.len() > 0 and
-    x.checkRunes(x.runeAt(x.low()), x.runeAt(x.high())) and
-    toSeq(ReservedName.items()).allIt($it != x)
+  x.len() > 0 and x.checkRunes() and not x.isReservedName()
 
 
 
 static:
   for n in ReservedName:
-      doAssert(($n).isUtf8())
+    doAssert(($n).isUtf8())
