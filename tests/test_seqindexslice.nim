@@ -1,6 +1,6 @@
 import pkgconfexe/private/[ seqindexslice ]
 
-import std/[ sequtils, unittest ]
+import std/[ unittest ]
 
 
 
@@ -13,9 +13,11 @@ suite "seqindexslice":
     for it in [
       ((0.Natural, 1.Positive), 0.Natural .. 0.Natural),
       ((56184.Natural, 25.Positive), 56184.Natural .. 56208.Natural)
-    ].mapIt(it.TestData):
-      check:
-        seqIndexSlice(it.data.start, it.data.n) == it.expected
+    ]:
+      (proc (it: TestData) =
+        check:
+          seqIndexSlice(it.data.start, it.data.n) == it.expected
+      )(it)
 
 
   test "constructor_slice":

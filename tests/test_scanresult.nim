@@ -1,6 +1,6 @@
 import pkgconfexe/private/[ scanresult ]
 
-import std/[ sequtils, sugar, unittest ]
+import std/[ sugar, unittest ]
 
 
 
@@ -13,12 +13,14 @@ suite "scanresult":
     for it in [
       ((0.Natural, 1.Positive), ScanResult(start: 0, n: 1)),
       ((654891.Natural, 7.Positive), ScanResult(start: 654891, n: 7))
-    ].mapIt(it.TestData):
-      let some = someScanResult(it.data.start, it.data.n)
+    ]:
+      (proc (it: TestData) =
+        let some = someScanResult(it.data.start, it.data.n)
 
-      check:
-        some == it.expected
-        some.hasResult()
+        check:
+          some == it.expected
+          some.hasResult()
+      )(it)
 
 
   test "someScanResult_slice":
@@ -32,12 +34,14 @@ suite "scanresult":
         ScanResult(start: 198798, n: len(198798 .. 9842613))
       ),
       (seqIndexSlice(0, 1), ScanResult(start: 0, n: 1))
-    ].mapIt(it.TestData):
-      let some = someScanResult(it.data)
+    ]:
+      (proc (it: TestData) =
+        let some = someScanResult(it.data)
 
-      check:
-        some == it.expected
-        some.hasResult()
+        check:
+          some == it.expected
+          some.hasResult()
+      )(it)
 
 
   test "emptyScanResult":
@@ -48,12 +52,14 @@ suite "scanresult":
     for it in [
       (0.Natural, ScanResult(start: 0, n: 0)),
       (12.Natural, ScanResult(start: 12, n: 0))
-    ].mapIt(it.TestData):
-      let empty = emptyScanResult(it.data)
+    ]:
+      (proc (it: TestData) =
+        let empty = emptyScanResult(it.data)
 
-      check:
-        empty == it.expected
-        not empty.hasResult()
+        check:
+          empty == it.expected
+          not empty.hasResult()
+      )(it)
 
 
 
