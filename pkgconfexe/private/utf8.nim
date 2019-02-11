@@ -1,9 +1,9 @@
 when nimvm:
-  discard
+  import std/[ sets, strutils ]
 else:
   import pkg/[ unicodedb ]
 
-import std/[ sets, unicode ]
+import std/[ unicode ]
 
 
 
@@ -28,6 +28,7 @@ func toRune* (c: AsciiChar): Rune =
 when nimvm:
   const
     ControlCharSet = { '\x00' .. '\x1F', '\x7F', '\x80' .. '\x9F' }
+
     WhiteSpaceCharSet = toSet[Rune](
       @[ ' '.toRune(), 0x00A0.Rune, 0x1680.Rune ] &
         (func (): seq[Rune] =
@@ -113,7 +114,7 @@ func isControl* (r: Rune): bool =
     r.unicodeCategory() == ctgCc
 
 
-func isUnicodeWhiteSpace(r: Rune): bool =
+func isUnicodeWhiteSpace* (r: Rune): bool =
   when nimvm:
     r in WhiteSpaceCharSet
   else:
@@ -122,3 +123,10 @@ func isUnicodeWhiteSpace(r: Rune): bool =
 
 func isWhiteSpaceOrTab* (r: Rune): bool =
   r.isUnicodeWhiteSpace() or r == '\t'
+
+
+func isNumber* (r: Rune): bool =
+  when nimvm:
+    ($r).firstChar().isDigit()
+  else:
+    r.unicodeCategory() in ctgN
