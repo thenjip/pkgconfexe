@@ -1,7 +1,7 @@
 import comparator, package, version
-import private/[ scanresult, seqindexslice, utf8 ]
+import private/[ scanhelper, scanresult, utf8 ]
 
-import std/[ strformat, sugar ]
+import std/[ options, strformat, sugar ]
 
 
 export comparator
@@ -21,7 +21,7 @@ func buildModule* (pkg: string; cmp: Comparator; version: string): Module =
 
 
 func `==`* (l, r: Module): bool =
-  l.cmp == r.cmp and l.pkg == r.pkg and l.version == r.version
+  l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
 
 
 
@@ -30,33 +30,42 @@ func `$`* (self: Module): string =
 
 
 
-func scanModule* (input: string; start: Natural): Optional[ScanResult[Module]] =
-  input.scanPackage(start).flatMap(
-    func (pkgSlice: SeqIndexSlice): Optional[ScanResult[Module]] =
+func scanModule* (input: string; start: Natural): Option[Module] =
+  input.scanPackage(start).ifHasResult(
+    (pkgSlice: SeqIndexSlice) =>
       input.scanComparator(
         ((i: Natural) => i + input.skipWhiteSpaces(i))(pkgSlice.b + 1)
-      ).flatMap((cmpSlice: SeqIndexSlice, cmp: Comparator) =>
-        input.scanVersion(
-          ((i: Natural) => i + input.skipWhiteSpaces(i))(cmpSlice.b + 1)
-        ).flatMap((versionSlice: SeqIndexSlice) =>
-          someScanResult(
-            start,
-            versionSlice.b + 1,
-            buildModule(input[pkgSlice], cmp, input[versionSlice])
+      ).ifHasResult(
+        (cmpSlice: SeqIndexSlice) =>
+          input.scanVersion(
+            ((i: Natural) => i + input.skipWhiteSpaces(i))(cmpSlice.b + 1)
+          ).ifHasResult(
+            (versionSlice: SeqIndexSlice) =>
+              buildModule(
+                input[pkgSlice],
+                input[cmpSlice].findComparator().get(),
+                input[versionSlice]
+              ).some()
+            ,
+            returnNone[Module]
           )
-        )
+        ,
+        returnNone[Module]
       )
+    ,
+    returnNone[Module]
   )
 
 
-func scanModule* (input: string): Optional[ScanResult[Module]] =
+func scanModule* (input: string): Option[Module] =
   input.scanModule(input.low())
 
 
 
-func module* (input: static[string]; start: static[Natural]): Module =
-  input.scanModule(start).get().value()
+func isModule* (x: string): bool =
+  x.scanModule().isSome()
+
 
 
 func module* (input: static[string]): Module =
-  input.scanModule().get().value()
+  input.scanModule().get()

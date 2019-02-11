@@ -1,6 +1,6 @@
 import seqindexslice
 
-import std/[ sugar ]
+import std/[ options, sugar ]
 
 
 export seqindexslice
@@ -10,6 +10,15 @@ export seqindexslice
 type ScanResult* = object
   start*: Natural ## The index where scanning starts.
   n*: Natural ## The number of matching units (chars, bytes, ...).
+
+
+
+func `==`* (l, r: ScanResult): bool =
+  l.start == r.start and l.n == r.n
+
+
+func `!=`* (l, r: ScanResult): bool =
+  not (l == r)
 
 
 
@@ -117,9 +126,5 @@ func flatMap* (
 
 
 
-func `==`* (l, r: ScanResult): bool =
-  l.start == r.start and l.n == r.n
-
-
-func `!=`* (l, r: ScanResult): bool =
-  not (l == r)
+func returnNone* [T](sr: ScanResult): Option[T] =
+  T.none()
