@@ -1,37 +1,45 @@
-import package
-import private/[ fphelper, utf8 ]
+import private/[ scanhelper, scanresult, seqindexslice, utf8 ]
 
-import pkg/unicodedb
+when nimvm:
+  discard
+else:
+  import pkg/[ unicodedb ]
 
-import std/[ strscans, unicode ]
-
-
-
-const
-  AllowedCharOthers = { '+', '-', '_', '$', '.', '#', '@', '~', '*', ':' }
-
-  AllowedCategories* = ctgL + ctgN
+import std/[ unicode ]
 
 
 
-func isValid (r: Rune): bool {. locks: 0 .} =
-  result = r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
+const AllowedCharOthers = { '+', '-', '_', '$', '.', '#', '@', '~', '*', ':' }
+
+when nimvm:
+  discard
+else:
+  const AllowedCategories* = ctgL + ctgN
 
 
 
-func isVersion* (x: string): bool {. locks: 0 .} =
-  result =
-    x.len() > 0 and
-    x.toRunes().callZFunc(all(it.isValid()))
+func isValid (r: Rune): bool =
+  r in AllowedCharOthers or
+    (func (r: Rune): bool =
+      when nimvm:
+        r.isNumber() or r.isAlpha()
+      else:
+        r.unicodeCategory() in AllowedCategories
+    )(r)
+
+
+func scanVersion* (input: string; start, nMax: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, nMax, isValid))
+
+
+func scanVersion* (input: string; start: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, isValid))
+
+
+func scanVersion* (input: string): ScanResult =
+  input.scanVersion(input.low())
 
 
 
-func scanfVersion* (input: string; version: var string; start: int): int {.
-  locks: 0
-.} =
-  let found = $input[start .. input.high()].toRunes().callZFunc(
-    takeWhile(it.isValid())
-  )
-
-  version = found
-  result = found.len()
+func isVersion* (x: string): bool =
+  x.len() > 0 and x.scanVersion().n == x.len()

@@ -1,82 +1,71 @@
 import comparator, package, version
-import private/[ fphelper, utf8 ]
+import private/[ scanhelper, scanresult, utf8 ]
 
-import pkg/zero_functional
-
-import std/[ strformat, strscans, unicode ]
+import std/[ options, strformat, sugar ]
 
 
 export comparator
 
 
 
-type
-  Module* = tuple
-    pkg: string
-    hasVersion: bool
-    cmp: Comparator
-    version: string
+type Module* = object
+  pkg*: string
+  cmp*: Comparator
+  version*: string
 
 
 
-func `==`* (l, r: Module): bool {. locks: 0 .} =
-  result =
-    if l.hasVersion:
-      r.hasVersion and
-        l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
-    else:
-      (not r.hasVersion) and l.pkg == r.pkg
+func buildModule* (pkg: string; cmp: Comparator; version: string): Module =
+  Module(pkg: pkg, cmp: cmp, version: version)
 
 
 
-func `$`* (m: Module): string {. locks: 0 .} =
-  result =
-    if m.hasVersion:
-      fmt"{m.pkg}{$m.cmp}{m.version}"
-    else:
-      m.pkg
+func `==`* (l, r: Module): bool =
+  l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
 
 
 
-func scanfModule* (input: string; m: var Module; start: int): int {.
-  locks: 0
-.} =
-  result = 0
-  var
-    pkg = ""
-    cmp: Comparator
-    version = ""
+func `$`* (self: Module): string =
+  fmt"{self.pkg}{self.cmp}{self.version}"
 
-  let pkgLen = input.scanfPackage(pkg, start)
 
-  if pkgLen > 0:
-    result += pkgLen + input.skipWhitespaces(start + pkgLen)
-    let cmpLen = input.scanfComparator(cmp, start + result)
 
-    if cmpLen > 0:
-      result += cmpLen + input.skipWhitespaces(start + cmpLen)
-      let versionLen = input.scanfVersion(version, start + result)
-
-      if versionLen > 0:
-        result += versionLen
-        m = (pkg: pkg, hasVersion: true, cmp: cmp, version: version)
-      else:
-        result = 0
-    else:
-      m = (
-        pkg: pkg, hasVersion: false, cmp: Comparator.default(), version: version
+func scanModule* (input: string; start: Natural): Option[Module] =
+  input.scanPackage(start).ifHasResult(
+    (pkgSlice: SeqIndexSlice) =>
+      input.scanComparator(
+        ((i: Natural) => i + input.skipWhiteSpaces(i))(pkgSlice.b + 1)
+      ).ifHasResult(
+        (cmpSlice: SeqIndexSlice) =>
+          input.scanVersion(
+            ((i: Natural) => i + input.skipWhiteSpaces(i))(cmpSlice.b + 1)
+          ).ifHasResult(
+            (versionSlice: SeqIndexSlice) =>
+              buildModule(
+                input[pkgSlice],
+                input[cmpSlice].findComparator().get(),
+                input[versionSlice]
+              ).some()
+            ,
+            returnNone[Module]
+          )
+        ,
+        returnNone[Module]
       )
+    ,
+    returnNone[Module]
+  )
+
+
+func scanModule* (input: string): Option[Module] =
+  input.scanModule(input.low())
 
 
 
-func toModule* (s: string): Module {. locks: 0, raises: [ ValueError ] .} =
-  if not s.scanf(
-    "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]$.", result
-  ):
-    raise newException(ValueError, fmt""""{s}" is not a valid module.""")
+func isModule* (x: string): bool =
+  x.scanModule().isSome()
 
 
-func module* (s: static[string]): Module {.
-  locks: 0, raises: [ ValueError ]
-.} =
-  result = s.toModule()
+
+func module* (input: static[string]): Module =
+  input.scanModule().get()

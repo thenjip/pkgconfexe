@@ -3,11 +3,9 @@ author = "Thanh Tung Nguyen"
 description = "Wrapper to query information from the pkgconf command line tool"
 license = "MIT"
 
-requires "nim >= 0.19.1",
-  "regex >= 0.10.0",
+requires "nim >= 0.19.4",
   "unicodedb >= 0.6.0",
-  "unicodeplus >= 0.4.0",
-  "zero_functional >= 0.2.0"
+  "unicodeplus >= 0.4.0"
 
 srcDir = packageName
 skipDirs = @[ "tests" ]

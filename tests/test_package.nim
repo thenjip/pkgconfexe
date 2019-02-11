@@ -1,11 +1,14 @@
-import pkgconfexe/package
+import pkgconfexe/[ package ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import pkg/zero_functional
-
-import std/[ os, sequtils, strformat, strscans, unittest ]
+import std/[ os, strformat, unittest ]
 
 
 include "data.nims"
+
+
+
+const CommonData = [ "gtk+", ".NET", "écrire" ]
 
 
 
@@ -14,21 +17,34 @@ suite "package":
     check:
       not "".isPackage()
 
-    [ "gtk+", ".NET", "Ã˜MQ" ]-->foreach(
-      (proc (p: string) =
-        check:
-          p.isPackage()
+    for it in CommonData:
+      check:
+        it.isPackage()
 
-        let noisyPkg = fmt"{p},d^Â¨"
-        var match = ""
+    for it in walkFiles(fmt"{DataDir}/*.pc"):
+      echo it
+      check:
+        it.splitFile().name.isPackage()
 
-        check:
-          noisyPkg.scanf("${scanfPackage}", match)
-          match == p
-      )(it)
-    )
 
-    toSeq(fmt"{DataDir}/*.pc".walkFiles()).zfun:
-      foreach:
-        check:
-          it.splitFile().name.isPackage()
+
+  test "scanPackage":
+    for it in CommonData:
+      let
+        noisyPkg = it & ",d^Â¨"
+        scanResult = noisyPkg.scanPackage()
+
+      check:
+        scanResult.hasResult()
+        noisyPkg[seqIndexSlice(scanResult.start, scanResult.n)] == it
+
+
+
+  test "isPackage_const":
+    const
+      valid = "écrire".isPackage()
+      invalid = "ØMQ".isPackage() # For now since we only support ASCII digits.
+
+    check:
+      valid
+      not invalid

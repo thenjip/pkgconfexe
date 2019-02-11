@@ -1,8 +1,6 @@
-import pkgconfexe/private/[ filename, fphelper ]
+import pkgconfexe/private/[ filename ]
 
-import pkg/zero_functional
-
-import std/[ os, macros, sequtils, unittest ]
+import std/[ os, sequtils, unittest ]
 
 
 
@@ -12,14 +10,25 @@ suite "filename":
       not "".isFileName()
       "Zfmbkç9^`{'à’Ω§ŁÐŊª® Æħ̉̉ĸłþ¨¤؆".isFileName()
 
-    toSeq("*.nim*".walkFiles()).zfun:
-      foreach:
-        check:
-          it.isFileName()
+    for f in toSeq("*".walkFiles()):
+      echo f
+      check:
+        f.isFileName()
 
     const winFileName = "NUL"
+
     check:
-      when defined(windows):
-        not winFileName.isFileName()
-      else:
-        winFileName.isFileName()
+      (func (isFile: bool): bool =
+        when defined(windows):
+          not isFile
+        else:
+          isFile
+      )(winFileName.isFileName())
+
+
+
+  test "isFileName_const":
+    const valid = "é_àk".isFileName()
+
+    check:
+      valid

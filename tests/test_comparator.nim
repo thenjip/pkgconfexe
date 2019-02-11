@@ -1,8 +1,7 @@
-import pkgconfexe/comparator
+import pkgconfexe/[ comparator ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import pkg/zero_functional
-
-import std/[ unicode, unittest ]
+import std/[ options, unicode, sequtils, unittest ]
 
 
 
@@ -12,35 +11,52 @@ const SomeInvalidComparators = [ "=", "& ", "++", "-", "^" ]
 
 suite "comparator":
   test "isComparator":
-    Comparator.zfun:
-      foreach:
-        check:
-          ($it).isComparator()
+    for c in Comparator:
+      check:
+        ($c).isComparator()
 
-    SomeInvalidComparators.zfun:
-      foreach:
-        check:
-          not it.isComparator()
+    for c in SomeInvalidComparators:
+      check:
+        not c.isComparator()
+
 
 
   test "option":
-    Comparator.zfun:
-      foreach:
-        check:
-          it.option() == ComparatorOptions[it]
+    for c in Comparator:
+      check:
+        c.option() == ComparatorOptions[c]
 
 
-  test "scanfComparator":
-    [ "", "ép>=" ].zfun:
-      foreach:
-        var c: Comparator
 
-        check:
-          it.scanfComparator(c, it.low()) == 0
-
-    [ "==3.0", "<=µ" ].zfun:
-      foreach:
-        var c: Comparator
+  test "scanComparator":
+    (proc () =
+      for it in [ "", "ép>=" ]:
+        let scanResult = it.scanComparator()
 
         check:
-          it.scanfComparator(c, it.low()) == ComparatorNChars
+          not scanResult.hasResult()
+    )()
+
+    type TestData = tuple
+      input: string
+      start: int
+      expected: Comparator
+
+    for it in [
+      ("==3.0", 0, Comparator.Equal), ("g<=µ", 1, Comparator.LessEq)
+    ].mapIt(it.TestData):
+      let
+        scanResult = it.input.scanComparator(it.start)
+        slicedIn = it.input[seqIndexSlice(scanResult.start, scanResult.n)]
+
+      check:
+        scanResult.hasResult()
+        slicedIn.isComparator()
+        slicedIn.findComparator().get() == it.expected
+
+
+    test "isComparator_const":
+      const valid = "<=".isComparator()
+
+      check:
+        valid

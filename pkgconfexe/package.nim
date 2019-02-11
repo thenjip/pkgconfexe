@@ -1,34 +1,47 @@
-import private/[ fphelper, utf8 ]
+import private/[ scanhelper, scanresult, utf8 ]
 
-import pkg/[ unicodedb, zero_functional ]
+when nimvm:
+  discard
+else:
+  import pkg/[ unicodedb ]
 
 import std/[ unicode ]
 
 
 
-const
-  AllowedCharOthers* = { '+', '-', '_', '$', '.', '#', '@', '~' }
+const AllowedCharOthers*: set[AsciiChar] = {
+  '+', '-', '_', '$', '.', '#', '@', '~'
+}
 
-  AllowedCategories* = ctgL + ctgN
-
-
-
-func isValid (r: Rune): bool {. locks: 0 .} =
-  result = r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
-
-
-
-func isPackage* (x: string): bool {. locks: 0 .} =
-  result = x.len() > 0 and x.toRunes().callZFunc(all(it.isValid()))
+when nimvm:
+  discard
+else:
+  const AllowedCategories = ctgL + ctgN
 
 
 
-func scanfPackage* (input: string; pkg: var string; start: int): int {.
-  locks: 0
-.} =
-  let found = $input[start .. input.high()].toRunes().callZFunc(
-    takeWhile(it.isValid())
-  )
+func isValid* (r: Rune): bool =
+  r in AllowedCharOthers or
+    (func (r: Rune): bool =
+      when nimvm:
+        r.isNumber() or r.isAlpha()
+      else:
+        r.unicodeCategory() in AllowedCategories
+    )(r)
 
-  pkg = found
-  result = found.len()
+
+func scanPackage* (input: string; start, nMax: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, nMax, isValid))
+
+
+func scanPackage* (input: string; start: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, isValid))
+
+
+func scanPackage* (input: string): ScanResult =
+  input.scanPackage(input.low())
+
+
+
+func isPackage* (x: string): bool =
+  x.len() > 0 and x.scanPackage().n == x.len()

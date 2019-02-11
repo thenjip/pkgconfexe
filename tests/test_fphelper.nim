@@ -1,49 +1,13 @@
-import pkgconfexe/private/fphelper
+import pkgconfexe/private/[ fphelper ]
 
-import pkg/zero_functional
-
-import std/unittest
-
-
-
-type Direction = enum
-  north
-  east
-  south
-  west
-
-
-
-const
-  AllDirectionSet = setOfAll(Direction)
-  AllDirectionSeq = seqOfAll(Direction)
+import std/[ sequtils, unittest ]
 
 
 
 suite "fphelper":
-  test "setOfAll":
-    check:
-      AllDirectionSet == { Direction.low()..Direction.high() }
-      AllDirectionSet - { west } ==
-        { Direction.low()..Direction.high() } - { west }
+  test "foreach":
+    3.repeat(5).foreach:
+      echo it
 
-
-  test "seqOf":
-    check:
-      compiles:
-        seqOf([ "", "" ].mpairs()).zfun:
-          foreach:
-            discard
-
-
-  test "seqOfAll":
-    check:
-      AllDirectionSeq == @[ north, east, south, west ]
-      AllDirectionSeq != @[ east, south, west, north ]
-      seqOfAll(east..south) == @[ east, south ]
-
-
-  test "callZFunc":
-    check:
-      compiles(AllDirectionSeq.callZFunc(map(it)).len() == 4)
-      compiles(AllDirectionSet.callZFunc(map(it)).len() == 4)
+    toSeq({ 'a' .. 'z' }.items()).mapIt($it).foreach c:
+      echo c

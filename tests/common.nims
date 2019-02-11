@@ -1,12 +1,14 @@
-const Tests = [
+const Tests* = [
   "utf8",
-  "identifier",
+  "seqindexslice",
+  "scanresult",
+  "scanhelper",
   "filename",
   "package",
   "comparator",
   "version",
-  "module",
-  "env",
-  "cmd",
+#  "module",
+#  "env",
+#  "cmd",
 #  "pkgconfexe"
 ]

@@ -1,9 +1,6 @@
-import pkg/zero_functional
+import std/[ strformat ]
 
-import std/strformat
-
-
-include "common.nims"
+import "common.nims"
 
 
 
@@ -15,4 +12,5 @@ proc doRm (file: string) =
 
 
 
-Tests-->foreach(doRm(it))
+for t in Tests:
+  t.doRm()

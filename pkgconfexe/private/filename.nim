@@ -1,15 +1,13 @@
-import fphelper, utf8
-
-import pkg/[ unicodedb, zero_functional ]
+import scanhelper, utf8
 
 from std/os import AltSep, Curdir, DirSep, ParDir, PathSep
-import std/[ strutils, unicode ]
+import std/[ unicode ]
 
 
 
 when defined(windows):
   const
-    ReservedChars* = {
+    ReservedChars*: set[AsciiChar] = {
       '?', '*',
       ':', PathSep,
       '/', '\\', '|', AltSep, DirSep,
@@ -17,7 +15,7 @@ when defined(windows):
       '<', '>'
     }
 
-    ForbiddenLastChars* = { ' ', '.' } + ReservedChars
+    ForbiddenLastChars*: set[AsciiChar] = { ' ', '.' } + ReservedChars
 else:
   const
     ReservedChars* = { AltSep, DirSep, PathSep }
@@ -62,24 +60,29 @@ else:
 
 
 
-func checkRunes (x: string): bool {. locks: 0 .} =
-  let (lastRune, lastRuneLen) = x.lastRune(x.high())
+func isReservedName (x: string): bool =
+  result = false
 
-  result =
-    lastRune notin ForbiddenLastChars and
-    x[x.low() .. x.high() - lastRuneLen].toRunes().callZFunc(
-      all(it notin ReservedChars and it.unicodeCategory() != ctgCc)
-    )
+  for rn in ReservedName:
+    if x == $rn:
+      return true
 
 
-func isFileName* (x: string): bool {. locks: 0 .} =
-  result =
-    x.len() > 0 and
-    x.runeAt(x.low()) != ShortOptionPrefix and
-    x.checkRunes() and
-    ReservedName.callZFunc(all($it != x))
+func isValid (r: Rune): bool =
+  r notin ReservedChars and not r.isControl()
+
+
+func checkRunes* (x: string): bool =
+  x.runeAt(x.low()) != ShortOptionPrefix and
+    x.runeAt(x.high()) notin ForbiddenLastChars and
+    x.countValidBytes(isValid) == x.len()
+
+
+func isFileName* (x: string): bool =
+  x.len() > 0 and x.checkRunes() and not x.isReservedName()
 
 
 
 static:
-  ReservedName-->foreach(doAssert(($it).isUtf8()))
+  for n in ReservedName:
+    doAssert(($n).isUtf8())
