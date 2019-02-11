@@ -32,3 +32,10 @@ suite "version":
     check:
       scanResult.hasResult()
       Input[seqIndexSlice(scanResult.start, scanResult.n)] == Expected
+
+
+  test "isVersion_const":
+    const valid = "1:6.9.2-alpha".isVersion()
+
+    check:
+      valid

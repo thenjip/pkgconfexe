@@ -12,9 +12,8 @@ type Comparator* {. pure .} = enum
 
 
 const
-  ComparatorMap* = toOrderedTable(toSeq(Comparator.items()).mapIt(
-    (($it).toRunes(), it))
-  )
+  ComparatorMap =
+    toOrderedTable(toSeq(Comparator.items()).mapIt((($it).toRunes(), it)))
 
   ComparatorOptions*: array[Comparator, string] = [
     "--max-version",
@@ -58,9 +57,10 @@ func findComparator* (x: string): Option[Comparator] =
 
 
 func scanComparator* (input: string; start: Natural): ScanResult =
-  if start > input.high() or input.runeSubStr(
-    start, ComparatorNChars
-  ).findComparator().isNone():
+  if
+    start > input.high() or
+      input.runeSubStr(start, ComparatorNChars).findComparator().isNone()
+  :
     emptyScanResult(start)
   else:
     someScanResult(start, ComparatorNChars)

@@ -1,14 +1,14 @@
 import pkgconfexe/[ package ]
 import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import std/[ os, sequtils, strformat, unittest ]
+import std/[ os, strformat, unittest ]
 
 
 include "data.nims"
 
 
 
-const CommonData = [ "gtk+", ".NET", "Ã˜MQ" ]
+const CommonData = [ "gtk+", ".NET", "écrire" ]
 
 
 
@@ -21,7 +21,7 @@ suite "package":
       check:
         it.isPackage()
 
-    for it in toSeq(fmt"{DataDir}/*.pc".walkFiles()):
+    for it in walkFiles(fmt"{DataDir}/*.pc"):
       echo it
       check:
         it.splitFile().name.isPackage()
@@ -41,7 +41,10 @@ suite "package":
 
 
   test "isPackage_const":
-    const sr = "p".scanPackage()
+    const
+      valid = "écrire".isPackage()
+      invalid = "ØMQ".isPackage() # For now since we only support ASCII digits.
 
     check:
-      sr.hasResult()
+      valid
+      not invalid

@@ -1,34 +1,39 @@
 import private/[ scanhelper, scanresult, seqindexslice, utf8 ]
 
-import pkg/[ unicodedb ]
+when nimvm:
+  discard
+else:
+  import pkg/[ unicodedb ]
 
 import std/[ unicode ]
 
 
 
-const
-  AllowedCharOthers = { '+', '-', '_', '$', '.', '#', '@', '~', '*', ':' }
+const AllowedCharOthers = { '+', '-', '_', '$', '.', '#', '@', '~', '*', ':' }
 
-  AllowedCategories* = ctgL + ctgN
+when nimvm:
+  discard
+else:
+  const AllowedCategories* = ctgL + ctgN
 
 
 
 func isValid (r: Rune): bool =
-  r in AllowedCharOthers or r.unicodeCategory() in AllowedCategories
+  r in AllowedCharOthers or
+    (func (r: Rune): bool =
+      when nimvm:
+        r.isNumber() or r.isAlpha()
+      else:
+        r.unicodeCategory() in AllowedCategories
+    )(r)
 
 
-
-func scanVersion* (input: string; start, n: Natural): ScanResult =
-  (func (nParsed: Natural): ScanResult =
-    if nParsed > 0:
-      someScanResult(start, nParsed)
-    else:
-      emptyScanResult(start)
-  )(input.countValidBytes(start, n, isValid))
+func scanVersion* (input: string; start, nMax: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, nMax, isValid))
 
 
 func scanVersion* (input: string; start: Natural): ScanResult =
-  input.scanVersion(start, input.len())
+  buildScanResult(start, input.countValidBytes(start, isValid))
 
 
 func scanVersion* (input: string): ScanResult =

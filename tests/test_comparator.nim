@@ -53,3 +53,10 @@ suite "comparator":
         scanResult.hasResult()
         slicedIn.isComparator()
         slicedIn.findComparator().get() == it.expected
+
+
+    test "isComparator_const":
+      const valid = "<=".isComparator()
+
+      check:
+        valid
