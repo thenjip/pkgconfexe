@@ -25,6 +25,13 @@ func emptyScanResult* (start: Natural): ScanResult =
   ScanResult(start: start, n: Natural.low())
 
 
+func buildScanResult* (start: Natural; n: Natural): ScanResult =
+  if n > 0:
+    someScanResult(start, n)
+  else:
+    emptyScanResult(start)
+
+
 
 func hasResult* (self: ScanResult): bool =
   ((n: Natural) => n > Natural.low())(self.n)
