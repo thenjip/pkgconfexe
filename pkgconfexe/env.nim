@@ -22,12 +22,20 @@ func `$`* (e: EnvVar): string =
 
 
 
-func buildEnv* (env: OrderedTable[EnvVarName, string]): string =
+func buildEnv* (
+  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
+): string =
   toSeq(env.pairs()).mapIt($it.EnvVar).join($' ')
 
 
 func buildEnv* (env: openarray[EnvVar]): string =
-  env.toOrderedTable().buildEnv()
+  case env.len():
+    of 0:
+      ""
+    of 1:
+      $env[env.low()]
+    else:
+      env.toOrderedTable().buildEnv()
 
 
 
