@@ -1,45 +1,44 @@
-import private/[ filename, identifier, utf8 ]
+import private/[ filename, utf8 ]
 
 from std/os import PathSep
-import std/[ sequtils, strformat, strutils, unicode ]
+import std/[ sequtils, strformat, strutils ]
 
 
 
 type
-  EnvVar* {. pure .} = enum
+  EnvVarName* {. pure .} = enum
     PkgConfigLibdir = "PKG_CONFIG_LIBDIR"
     PkgConfigPath = "PKG_CONFIG_PATH"
     PkgConfigSysrootDir = "PKG_CONFIG_SYSROOT_DIR"
 
-  EnvVarValue* = tuple
-    envVar: EnvVar
-    val: string
+  EnvVar* = object
+    name*: EnvVarName
+    value*: string
 
 
 
-func `$`* (e: EnvVarValue): string =
-  result = fmt"""{$e.envVar}="{e.val}{'"'}"""
+func `$`* (e: EnvVar): string =
+  result = fmt"""{$e.name}="{e.value}{'"'}"""
 
 
 
-func toString (e: EnvVarValue; envVars: var set[EnvVar]): string {.
+func toString (e: EnvVar; envVarNames: var set[EnvVarName]): string {.
   raises: [ ValueError ]
 .} =
-  if e.envVar in envVars:
-    raise newException(ValueError, fmt""""{$e.envVar}" is already set.""")
+  if e.name in envVarNames:
+    raise newException(ValueError, fmt""""{$e.name}" is already set.""")
 
   result = $e
-  envVars.incl(e.envVar)
+  envVarNames.incl(e.name)
 
 
-func buildEnv* (env: seq[EnvVarValue]): string {. raises: [ ValueError ] .} =
-  var envVars: set[EnvVar]
+func buildEnv* (env: openarray[EnvVar]): string {. raises: [ ValueError ] .} =
+  var envVars: set[EnvVarName]
 
   result = env.mapIt(it.toString(envVars)).join($' ')
 
 
 
 static:
-  for it in EnvVar:
-    doAssert(($it).isIdentifier())
-
+  for it in EnvVarName:
+    doAssert(($it).validIdentifier())

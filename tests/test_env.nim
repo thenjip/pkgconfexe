@@ -1,25 +1,23 @@
-import pkgconfexe/env
+import pkgconfexe/[ env ]
 
 from std/os import CurDir, DirSep, PathSep
 import std/[ os, strformat, strutils, unittest ]
 
-
-
-include "data.nims"
+import "data.nims"
 
 
 
 const
-  SomeConfigPath = (
-    envVar: EnvVar.PkgConfigPath,
-    val: [ DataDir, fmt"./{DataDir}".unixToNativePath() ].join($PathSep)
+  SomeConfigPath = EnvVar(
+    name: EnvVarName.PkgConfigPath,
+    value: [ DataDir, fmt"./{DataDir}".unixToNativePath() ].join($PathSep)
   )
-  SomeSysrootDir = (envVar: EnvVar.PkgConfigSysrootDir, val: DataDir)
+  SomeSysrootDir = EnvVar(name: EnvVarName.PkgConfigSysrootDir, value: DataDir)
 
   SomeConfigPathString =
-    fmt"""{$SomeConfigPath.envVar}="{SomeConfigPath.val}{'"'}"""
+    fmt"""{$SomeConfigPath.name}="{SomeConfigPath.value}{'"'}"""
   SomeSysrootDirString =
-    fmt"""{$SomeSysrootDir.envVar}="{SomeSysrootDir.val}{'"'}"""
+    fmt"""{$SomeSysrootDir.name}="{SomeSysrootDir.value}{'"'}"""
 
 
 
@@ -30,11 +28,19 @@ suite "env":
       $SomeSysrootDir == SomeSysrootDirString
 
 
+
   test "buildEnv":
     check:
-      @[ SomeConfigPath ].buildEnv() == SomeConfigPathString
-      @[ SomeConfigPath, SomeSysrootDir].buildEnv() ==
+      [ SomeConfigPath ].buildEnv() == SomeConfigPathString
+      [ SomeConfigPath, SomeSysrootDir].buildEnv() ==
         [ SomeConfigPathString, SomeSysrootDirString ].join($' ')
 
     expect ValueError:
-      let tmp = @[ SomeConfigPath, SomeConfigPath ].buildEnv()
+      let tmp = [ SomeConfigPath, SomeConfigPath ].buildEnv()
+
+
+  test "buildEnv_const":
+    const envLine = [ SomeConfigPath ].buildEnv()
+
+    check:
+      envLine == SomeConfigPathString

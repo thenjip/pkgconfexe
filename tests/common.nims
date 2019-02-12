@@ -8,7 +8,7 @@ const Tests* = [
   "comparator",
   "version",
   "module",
-#  "env",
+  "env",
 #  "cmd",
 #  "pkgconfexe"
 ]
