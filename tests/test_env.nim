@@ -8,11 +8,11 @@ import "data.nims"
 
 
 const
-  SomeConfigPath = EnvVar(
+  SomeConfigPath = (
     name: EnvVarName.PkgConfigPath,
     value: [ DataDir, fmt"./{DataDir}".unixToNativePath() ].join($PathSep)
   )
-  SomeSysrootDir = EnvVar(name: EnvVarName.PkgConfigSysrootDir, value: DataDir)
+  SomeSysrootDir = (name: EnvVarName.PkgConfigSysrootDir, value: DataDir)
 
   SomeConfigPathString =
     fmt"""{$SomeConfigPath.name}="{SomeConfigPath.value}{'"'}"""
@@ -34,9 +34,6 @@ suite "env":
       [ SomeConfigPath ].buildEnv() == SomeConfigPathString
       [ SomeConfigPath, SomeSysrootDir].buildEnv() ==
         [ SomeConfigPathString, SomeSysrootDirString ].join($' ')
-
-    expect ValueError:
-      let tmp = [ SomeConfigPath, SomeConfigPath ].buildEnv()
 
 
   test "buildEnv_const":

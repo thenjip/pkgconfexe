@@ -1,7 +1,7 @@
 import private/[ filename, utf8 ]
 
 from std/os import PathSep
-import std/[ sequtils, strformat, strutils ]
+import std/[ sequtils, strformat, strutils, tables ]
 
 
 
@@ -11,31 +11,23 @@ type
     PkgConfigPath = "PKG_CONFIG_PATH"
     PkgConfigSysrootDir = "PKG_CONFIG_SYSROOT_DIR"
 
-  EnvVar* = object
-    name*: EnvVarName
-    value*: string
+  EnvVar* = tuple
+    name: EnvVarName
+    value: string
 
 
 
 func `$`* (e: EnvVar): string =
-  result = fmt"""{$e.name}="{e.value}{'"'}"""
+  fmt"""{$e.name}="{e.value}{'"'}"""
 
 
 
-func toString (e: EnvVar; envVarNames: var set[EnvVarName]): string {.
-  raises: [ ValueError ]
-.} =
-  if e.name in envVarNames:
-    raise newException(ValueError, fmt""""{$e.name}" is already set.""")
-
-  result = $e
-  envVarNames.incl(e.name)
+func buildEnv* (env: OrderedTable[EnvVarName, string]): string =
+  toSeq(env.pairs()).mapIt($it.EnvVar).join($' ')
 
 
-func buildEnv* (env: openarray[EnvVar]): string {. raises: [ ValueError ] .} =
-  var envVars: set[EnvVarName]
-
-  result = env.mapIt(it.toString(envVars)).join($' ')
+func buildEnv* (env: openarray[EnvVar]): string =
+  env.toOrderedTable().buildEnv()
 
 
 
