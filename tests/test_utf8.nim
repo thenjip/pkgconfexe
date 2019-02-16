@@ -123,3 +123,28 @@ suite "utf8":
     for r in invalid_results:
       check:
         not r
+
+
+  test "isEmptyOrBlank":
+    for it in [ "", " ", "\t \t\n" ]:
+      check:
+        it.isEmptyOrBlank()
+
+    for it in [ " a", "\na  " ]:
+      check:
+        not it.isEmptyOrBlank()
+
+
+  test "joinWithSpaces":
+    type TestData = tuple
+      expected: string
+      actual: string
+
+    for it in [
+      ("abc", [ "", "abc", "\n" ].joinWithSpaces()),
+      ("f gh", [ "f", "", " ", "gh", "\t " ].joinWithSpaces())
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.expected == it.actual
+      )(it)

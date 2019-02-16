@@ -1,9 +1,9 @@
 when nimvm:
-  import std/[ sets, strutils ]
+  import std/[ sets ]
 else:
   import pkg/[ unicodedb ]
 
-import std/[ unicode ]
+import std/[ sequtils, strutils, unicode ]
 
 
 
@@ -130,3 +130,21 @@ func isNumber* (r: Rune): bool =
     ($r).firstChar().isDigit()
   else:
     r.unicodeCategory() in ctgN
+
+
+
+func isBlank (s: string): bool =
+  result = true
+
+  for r in s.runes():
+    if not r.isWhiteSpace():
+      return false
+
+
+## Empty or filled with Unicode whitespaces.
+func isEmptyOrBlank* (s: string): bool =
+  s.len() == 0 or s.isBlank()
+
+
+func joinWithSpaces* (a: openarray[string]): string =
+  a.filterIt(not it.isEmptyOrBlank()).join($' ')
