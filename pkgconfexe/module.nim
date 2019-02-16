@@ -15,11 +15,6 @@ type Module* = object
 
 
 
-func buildModule* (pkg: string; cmp: Comparator; version: string): Module =
-  Module(pkg: pkg, cmp: cmp, version: version)
-
-
-
 func `==`* (l, r: Module): bool =
   l.pkg == r.pkg and l.cmp == r.cmp and l.version == r.version
 
@@ -41,10 +36,10 @@ func scanModule* (input: string; start: Natural): Option[Module] =
             ((i: Natural) => i + input.skipWhiteSpaces(i))(cmpSlice.b + 1)
           ).ifHasResult(
             (versionSlice: SeqIndexSlice) =>
-              buildModule(
-                input[pkgSlice],
-                input[cmpSlice].findComparator().get(),
-                input[versionSlice]
+              Module(
+                pkg: input[pkgSlice],
+                cmp: input[cmpSlice].findComparator().get(),
+                version: input[versionSlice]
               ).some()
             ,
             returnNone[Module]
