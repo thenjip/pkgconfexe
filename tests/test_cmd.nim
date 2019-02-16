@@ -1,54 +1,90 @@
-import pkgconfexe/cmd
+import pkgconfexe/[ cmd ]
+import pkgconfexe/private/[ utf8 ]
 
-import pkg/[ regex ]
+import std/strutils except splitWhitespace
+import std/[ os, sequtils, strformat, unicode, unittest ]
 
-from std/ospaths import DirSep
-import std/[ ospaths, strformat, unittest ]
-
-
-include "data.nims"
+import "data.nims"
 
 
 
 const
-  DepsModule = Module(
-    pkg: DepsPkg, hasversion: true, cmp: Comparator.LessEq, version: "0.0.1"
-  )
-  DummyModule = Module(pkg: DummyPkg, hasVersion: false)
+  DepsModule = Module(pkg: DepsPkg, cmp: Comparator.LessEq, version: "0.0.1")
+  DummyModule = Module(pkg: DummyPkg, cmp: Comparator.Equal, version: "0.0.0")
 
-  SomeEnvVarValues = @[
+  SomeEnvVars = [
     (
-      envVar: EnvVar.PkgConfigPath,
-      val: currentSourcePath().splitFile().dir / DataDir
+      name: EnvVarName.PkgConfigPath,
+      value: currentSourcePath().splitFile().dir / DataDir
     )
   ]
-
-  CFlags1 = getCFlags(@[ DummyModule, DepsModule ], SomeEnvVarValues)
-  CFlags2 = getCFlags(@[ DummyModule ], SomeEnvVarValues)
-
-  LdFlags = getLdFlags(@[ DepsModule ], SomeEnvVarValues)
 
 
 
 suite "cmd":
   test "buildCmdLine":
-    check:
-      buildCmdLine(DummyModule, @[], Action.CFlags) ==
-        fmt"""{CmdName} {$Action.CFlags} "{DummyPkg.toModule().pkg}{'"'}"""
-      buildCmdLine(DepsModule, SomeEnvVarValues, Action.LdFlags) ==
-        fmt(
-          "{SomeEnvVarValues.buildEnv()} {CmdName} {$Action.LdFlags}" &
-            """ {DepsModule.cmp.option()} "{DepsModule.version}{'"'}""" &
-            """ "{DepsModule.pkg}{'"'}"""
-        )
+    type TestData = tuple
+      expected: string
+      actual: string
+
+    for it in [
+      (
+        [
+          CmdName,
+          $Action.CFlags,
+          DummyModule.cmp.option(),
+          """"{DummyModule.version}"""".fmt(),
+          """"{DummyModule.pkg}"""".fmt()
+        ].join($' '),
+        buildCmdLine(Action.CFlags, DummyModule, [])
+      ),
+      (
+        [
+          SomeEnvVars.buildEnv(),
+          CmdName,
+          $Action.LdFlags,
+          DepsModule.cmp.option(),
+          """"{DepsModule.version}"""".fmt(),
+          """"{DepsModule.pkg}"""".fmt()
+        ].join($' '),
+        buildCmdLine(Action.LdFlags, DepsModule, SomeEnvVars)
+      )
+    ]:
+      (proc (it: TestData) =
+        check:
+          it.expected == it.actual
+      )(it)
+
 
 
   test "getCFlags":
-    for it in [ CFlags1, CFlags2 ]:
-      check:
-        it.contains(re"^-Idummy -Ideps\s*$")
+    type TestData = tuple
+      expected: string
+      actual: string
+
+    const data = [
+      ("-Idummy -Ideps", getCFlags([ DummyModule, DepsModule ], SomeEnvVars)),
+      ("-Idummy -Ideps", getCFlags([ DummyModule ], SomeEnvVars))
+    ]
+
+    for it in data:
+      (proc (it: TestData) =
+        check:
+          it.expected ==
+            it.actual.splitWhitespace().deduplicate().joinWithSpaces()
+      )(it)
 
 
   test "getLdFlags":
-    check:
-      LdFlags == "-ldeps"
+    type TestData = tuple
+      expected: string
+      actual: string
+
+    const data = [ ("-ldeps", getLdFlags([ DepsModule ], SomeEnvVars)) ]
+
+    for it in data:
+      (proc (it: TestData) =
+        check:
+          it.expected ==
+            it.actual.splitWhitespace().deduplicate().joinWithSpaces()
+      )(it)

@@ -1,7 +1,10 @@
 language: c
 compiler: clang
 
-sudo: false
+addons:
+  apt:
+    packages:
+    - pkgconf
 
 
 cache:
