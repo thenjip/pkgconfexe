@@ -1,0 +1,36 @@
+language: c
+compiler: clang
+
+addons:
+  apt:
+    packages:
+    - pkgconf
+
+
+cache:
+  directories:
+    - nim
+
+
+os:
+  - linux
+
+
+install:
+  - "export NIMVER=$(git ls-remote https://github.com/nim-lang/nim.git HEAD | cut -f 1)"
+
+  - "{ [ -f nim/$NIMVER/bin/nim ] && [ -f nim/$NIMVER/bin/nimble ] ; } ||
+      { rm -rf nim ;
+        mkdir -p nim ;
+        git clone --depth=1 https://github.com/nim-lang/nim.git nim/$NIMVER ;
+        cd nim/$NIMVER ;
+        sh build_all.sh ;
+        rm -rf csources ;
+        cd ../.. ;
+      }"
+  - "export PATH=$PWD/nim/$NIMVER/bin:$PATH"
+
+
+script:
+  - nimble install -d -y
+  - nimble test

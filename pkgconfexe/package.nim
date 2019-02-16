@@ -1,44 +1,47 @@
-import private/utf8
+import private/[ scanhelper, scanresult, utf8 ]
 
-import pkg/unicodedb
+when nimvm:
+  discard
+else:
+  import pkg/[ unicodedb ]
 
-import std/unicode
-
-
-
-const
-  AllowedCharOthers* = { '+', '-', '_', '$', '.', '#', '@', '~' }
-
-  AllowedCategories* = ctgL + ctgN
+import std/[ unicode ]
 
 
 
-func isPackage* (x: string): bool {. locks: 0 .} =
-  if x.len() == 0:
-    return false
+const AllowedCharOthers*: set[AsciiChar] = {
+  '+', '-', '_', '$', '.', '#', '@', '~'
+}
 
-  for r in x.runes():
-    if
-      r notin AllowedCharOthers and
-      r.unicodeCategory() notin AllowedCategories
-    :
-      return false
-
-  result = true
+when nimvm:
+  discard
+else:
+  const AllowedCategories = ctgL + ctgN
 
 
 
-func scanfPackage* (input: string; pkg: var string; start: int): int {.
-  locks: 0
-.} =
-  result = 0
+func isValid* (r: Rune): bool =
+  r in AllowedCharOthers or
+    (func (r: Rune): bool =
+      when nimvm:
+        r.isNumber() or r.isAlpha()
+      else:
+        r.unicodeCategory() in AllowedCategories
+    )(r)
 
-  for r in input[start..input.high()].runes():
-    if
-      r notin AllowedCharOthers and
-      r.unicodeCategory() notin AllowedCategories
-    :
-      break
 
-    result.inc()
-    pkg.add($r)
+func scanPackage* (input: string; start, nMax: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, nMax, isValid))
+
+
+func scanPackage* (input: string; start: Natural): ScanResult =
+  buildScanResult(start, input.countValidBytes(start, isValid))
+
+
+func scanPackage* (input: string): ScanResult =
+  input.scanPackage(input.low())
+
+
+
+func isPackage* (x: string): bool =
+  x.len() > 0 and x.scanPackage().n == x.len()

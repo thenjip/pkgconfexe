@@ -8,14 +8,14 @@ export env
 
 
 
-func toModules (mods: NimNode): NimNode {. locks: 0 .} =
+func toModules (mods: NimNode): NimNode =
   doAssert(mods.isArrayOf[: string]())
 
   result = "module.toModules".bindSym().newCall(mods)
 
 
 
-macro withEnv* (env: varargs[EnvVarValue]): NimNode =
+macro withEnv* (env: varargs[static[EnvVarValue]]): NimNode =
   result = nnkBracket.newNimNode()
 
   for e in env:
@@ -23,22 +23,21 @@ macro withEnv* (env: varargs[EnvVarValue]): NimNode =
 
 
 
-macro addCFlags* (modules: openarray[string]): untyped =
-
+macro addCFlags* (modules: openarray[static[string]]): untyped =
   result = nnkExprColonExpr.newTree(
     "passC".bindSym(),
     "getCFlags".bindSym().newCall(modules.toModules(), withEnv())
   )
 
 
-macro addLdFlags* (modules: openarray[string]): untyped =
+macro addLdFlags* (modules: openarray[static[string]]): untyped =
   result = nnkExprColonExpr.newTree(
     "passL".bindSym(),
     "getLdFlags".bindSym().newCall(modules.toModules(), withEnv())
   )
 
 
-macro checkModules* (modules: openarray[string]): untyped =
+macro checkModules* (modules: openarray[static[string]]): untyped =
   result = nnkPragmaExpr.newTree(
     addCFlags(modules, body),
     addLdFlags(modules, body)
@@ -46,7 +45,7 @@ macro checkModules* (modules: openarray[string]): untyped =
 
 
 
-macro addCFlags* (modules: varargs[string]; body: untyped): untyped =
+macro addCFlags* (modules: varargs[static[string]]; body: untyped): untyped =
   result = nnkPragma.newTree(
     nnkExprColonExpr.newTree(
       "passC".bindSym(),
@@ -55,7 +54,7 @@ macro addCFlags* (modules: varargs[string]; body: untyped): untyped =
   )
 
 
-macro addLdFlags* (modules: varargs[string]; body: untyped): untyped =
+macro addLdFlags* (modules: varargs[static[string]]; body: untyped): untyped =
   result = nnkPragma.newTree(
     nnkExprColonExpr.newTree(
       "passL".bindSym(),
@@ -66,7 +65,7 @@ macro addLdFlags* (modules: varargs[string]; body: untyped): untyped =
   )
 
 
-macro checkModules* (modules: varargs[string]; body: untyped): untyped =
+macro checkModules* (modules: varargs[static[string]]; body: untyped): untyped =
   result = nnkStmtList.newTree(
     addCFlags(modules, body),
     addLdFlags(modules, body)

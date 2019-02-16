@@ -3,18 +3,24 @@ author = "Thanh Tung Nguyen"
 description = "Wrapper to query information from the pkgconf command line tool"
 license = "MIT"
 
-requires "nim >= 0.19.1", "unicodedb >= 0.5.2", "unicodeplus >= 0.3.2"
+requires "nim >= 0.19.4",
+  "unicodedb >= 0.6.0",
+  "unicodeplus >= 0.4.0"
 
 srcDir = packageName
 skipDirs = @[ "tests" ]
 
 
 
+const TestDir = "tests"
+
+
+
 task test, "Run the test suite":
-  withDir "tests":
-    exec "nim".toExe & " e test.nims"
+  withDir TestDir:
+    exec "nim".toExe & " e tester.nims"
 
 
 task clean_test, "Clean the test suite":
-  withDir "tests":
-    exec "nim".toExe & " e clean.nims"
+  withDir TestDir:
+    exec "nim".toExe & " e cleaner.nims"

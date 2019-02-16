@@ -1,10 +1,11 @@
-## PkgconfExe
+# PkgconfExe
 
 Wrapper to get information from the [pkgconf](http://pkgconf.org/) command line tool for [Nim](https://nim-lang.org/) modules at compile time.
 
 ## Usage
 
 The simplest form:
+
 ```Nim
 import pkgconfexe
 
@@ -39,6 +40,7 @@ type
 ```
 
 Specifying one or more environment variables in the generated command line:
+
 ```Nim
 import pkgconfexe
 
@@ -65,7 +67,7 @@ checkModules "libpkgconf >= 1.0":
 
 type
   TPkgConfPkg*
-    {. importc: "pkgconf_pkg_t", header: "libpkgconf.h", incompleteStruct.}
+    {. importc: "pkgconf_pkg_t", header: "libpkgconf.h", incompleteStruct .}
     = tuple
 ```
 
@@ -77,16 +79,17 @@ type
 
 ## Dependencies
 
-* nim >= 0.19.1
-* unicodedb >= 0.5.2
-* unicodeplus >= 0.3.2
+* nim >= 0.19.4
+* unicodedb >= 0.6.0 (run-time only)
+* unicodeplus >= 0.4.0 (run-time only)
 
 * The pkgconf executable in the current working directory or $PATH (only needed at compile time)
 
 ## TODO
 
-- [ ] Support for all environment variables used by pkgconf
-- [ ] Support for all version comparators (<<, >>, !=)
-- [ ] Support for all compiler flag results given by pkgconf (e.g. --cflags-only-I)
-- [ ] API to specify parameters/options with the DSL
-- [ ] API to get other types of result than compiler flags given by pkgconf
+* [ ] Support Unicode numeric characters at compile-time.
+* [ ] Support all environment variables used by pkgconf
+* [ ] Support all version comparators (<<, >>, !=)
+* [ ] Support all compiler flag results given by pkgconf (e.g. --cflags-only-I)
+* [ ] API to specify parameters/options with the DSL
+* [ ] API to get other types of result than compiler flags given by pkgconf

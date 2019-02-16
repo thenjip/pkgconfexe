@@ -1,35 +1,41 @@
-import pkgconfexe/version
+import pkgconfexe/[ version ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import std/[ strscans, unittest ]
+import std/[ strformat, unittest ]
 
 
 
 suite "version":
   test "isVersion":
-    check(not "".isVersion())
+    for it in [ "", "o 6" ]:
+      check:
+        not it.isVersion()
 
-    const SomeValidVersions = [
+    for it in [
       "1.1983.0567",
       "0.3.6",
       "R5",
       "1:6.9.2",
       "1.0-4~ppa+xenial28",
       "3.0+git2018.12.25-00.00.00"
-    ]
-
-    for v in SomeValidVersions:
-      check(v.isVersion())
-
-    check(not "o 6".isVersion())
+    ]:
+      check:
+        it.isVersion()
 
 
-  test "scanfVersion":
+  test "scanVersion":
     const
-      Pattern = "${scanfVersion}"
-      Version = "3.5-1~97"
-      NoisyVersion = "3.5-1~97|°"
+      Expected = "3.5-1~97"
+      Input = fmt"{Expected}|°"
+    let scanResult = Input.scanVersion()
 
-    var match = ""
     check:
-      NoisyVersion.scanf(Pattern, match)
-      match == Version
+      scanResult.hasResult()
+      Input[seqIndexSlice(scanResult.start, scanResult.n)] == Expected
+
+
+  test "isVersion_const":
+    const valid = "1:6.9.2-alpha".isVersion()
+
+    check:
+      valid

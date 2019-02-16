@@ -1,6 +1,6 @@
-import private/utf8
+import private/[ scanresult, utf8 ]
 
-import std/[ strformat, unicode ]
+import std/[ options, sequtils, tables, unicode ]
 
 
 
@@ -12,56 +12,68 @@ type Comparator* {. pure .} = enum
 
 
 const
+  ComparatorMap =
+    toOrderedTable(toSeq(Comparator.items()).mapIt((($it).toRunes(), it)))
+
   ComparatorOptions*: array[Comparator, string] = [
     "--max-version",
     "--exact-version",
     "--atleast-version"
   ]
 
-  ComparatorNChars* = 2
+  ComparatorNChars* = Comparator.low().`$`().len()
 
 
 
-func option* (c: Comparator): static[string] {. locks: 0 .} =
-  result = ComparatorOptions[c]
-
-
-func toComparator* (s: string): Comparator {.
-  locks: 0, raises: [ ValueError ]
-.} =
-  for c in Comparator:
-    if s == $c:
-      return c
-
-  raise newException(ValueError, fmt""""{s}" is not a supported operator.""")
+func default* (T: typedesc[Comparator]): T =
+  T.GreaterEq
 
 
 
-func isComparator* (x: string): bool {. locks: 0 .} =
-  for c in Comparator:
-    if x.toRunes() == ($c).toRunes():
-      return true
-
-  result = false
+func option* (c: Comparator): string =
+  ComparatorOptions[c]
 
 
 
-func scanfComparator* (input: string; c: var Comparator; start: int): int {.
-  locks: 0
-.} =
-  result = 0
+func isComparator* (x: seq[Rune]): bool =
+  x.len() == ComparatorNChars and x in ComparatorMap
 
-  if input.len() >= ComparatorNChars:
-    let subStr = input.runeSubStr(start, ComparatorNChars)
 
-    if subStr.isComparator():
-      result += ComparatorNChars
-      c = subStr.toComparator()
+func isComparator* (x: string): bool =
+  x.toRunes().isComparator()
+
+
+
+func findComparator* (x: seq[Rune]): Option[Comparator] =
+  if x.isComparator():
+    ComparatorMap[x].some()
+  else:
+    Comparator.none()
+
+
+func findComparator* (x: string): Option[Comparator] =
+  x.toRunes().findComparator()
+
+
+
+func scanComparator* (input: string; start: Natural): ScanResult =
+  if
+    start > input.high() or
+      input.runeSubStr(start, ComparatorNChars).findComparator().isNone()
+  :
+    emptyScanResult(start)
+  else:
+    someScanResult(start, ComparatorNChars)
+
+
+func scanComparator* (input: string): ScanResult =
+  input.scanComparator(input.low())
 
 
 
 static:
   for c in Comparator:
-    doAssert(($c).len() == ComparatorNChars)
     doAssert(($c).isUtf8())
+    doAssert(($c).len() == ComparatorNChars)
+    doAssert(($c).toRunes().len() == ComparatorNChars)
     doAssert(c.option().isUtf8())

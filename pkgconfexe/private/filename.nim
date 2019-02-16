@@ -1,27 +1,26 @@
-import utf8
+import scanhelper, utf8
 
-from std/ospaths import Curdir, DirSep, ParDir, PathSep
-import std/[ strutils, unicode ]
+from std/os import AltSep, Curdir, DirSep, ParDir, PathSep
+import std/[ unicode ]
 
 
 
 when defined(windows):
   const
-    ForbiddenChars* = {
+    ReservedChars*: set[AsciiChar] = {
       '?', '*',
       ':', PathSep,
-      '/', '\\', '|', DirSep,
-      '\"',
-      '<', '>',
-      '\0'..'\x1f', '\x7f', '\x80'..'\x9f'
+      '/', '\\', '|', AltSep, DirSep,
+      '"',
+      '<', '>'
     }
 
-    ForbiddenLastChars* = { ' ', '.' } + ForbiddenChars
+    ForbiddenLastChars*: set[AsciiChar] = { ' ', '.' } + ReservedChars
 else:
   const
-    ForbiddenChars* = { DirSep, PathSep, '\0'..'\x1f', '\x7f', '\x80'..'\x9f' }
+    ReservedChars* = { AltSep, DirSep, PathSep }
 
-    ForbiddenLastChars* = ForbiddenChars
+    ForbiddenLastChars* = ReservedChars
 
 const
   ShortOptionPrefix* = '-'
@@ -61,31 +60,29 @@ else:
 
 
 
-func isFileName* (x: string): bool {. locks: 0 .} =
-  if x.len() == 0:
-    return false
-
-  let skipIndex = x.skipWhiteSpaces(x.low())
-
-  if x.runeAt(skipIndex) == ShortOptionPrefix:
-    return false
-
-  let (lastRune, lastRuneLen) = x.lastRune(x.high())
-  if lastRune in ForbiddenLastChars:
-    return false
-
-  for r in x[skipIndex..x.high() - lastRuneLen].runes():
-    if r in ForbiddenChars:
-      return false
+func isReservedName (x: string): bool =
+  result = false
 
   for rn in ReservedName:
     if x == $rn:
-      return false
+      return true
 
-  result = true
+
+func isValid (r: Rune): bool =
+  r notin ReservedChars and not r.isControl()
+
+
+func checkRunes* (x: string): bool =
+  x.runeAt(x.low()) != ShortOptionPrefix and
+    x.runeAt(x.high()) notin ForbiddenLastChars and
+    x.countValidBytes(isValid) == x.len()
+
+
+func isFileName* (x: string): bool =
+  x.len() > 0 and x.checkRunes() and not x.isReservedName()
 
 
 
 static:
-  for rn in ReservedName:
-    doAssert(($rn).isUtf8())
+  for n in ReservedName:
+    doAssert(($n).isUtf8())

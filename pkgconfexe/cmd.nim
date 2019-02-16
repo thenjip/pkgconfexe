@@ -1,7 +1,8 @@
 import env, module
-import private/filename
+import private/[ filename, utf8 ]
 
-import std/[ ospaths, strformat, strutils ]
+from std/os import ExeExt
+import std/[ os, sequtils, strformat, strutils, sugar, tables ]
 
 
 export env, module
@@ -12,56 +13,120 @@ const CmdName* = "pkgconf".addFileExt(ExeExt)
 
 
 
-type
-  Action* {. pure .} = enum
-    CFlags = "--cflags"
-    LdFlags = "--ldflags"
+type Action* {. pure .} = enum
+  CFlags = "--cflags"
+  LdFlags = "--libs"
 
+
+
+func buildCmdLine (components: openarray[string]): string =
+  components.joinWithSpaces()
 
 
 func buildCmdLine* (
-  m: Module; env: openarray[EnvVarValue]; a: Action
-): string {. locks: 0 .} =
-  let cmd =
-    if m.version.len() == 0:
-      fmt"""{CmdName} {$a} "{m.pkg}{'"'}"""
-    else:
-      fmt(
-        "{CmdName} {$a} " &
-          """{m.cmp.option()} "{m.version}" "{m.pkg}{'"'}"""
-      )
+  a: Action;
+  m: Module;
+  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
+): string =
+  [
+    env.buildEnv(),
+    CmdName,
+    $a,
+    m.cmp.option(),
+    """"{m.version}"""".fmt(),
+    """"{m.pkg}"""".fmt()
+  ].joinWithSpaces()
 
-  result =
-    if env.len() == 0:
-      cmd
-    else:
-      fmt"{env.buildEnv()} {cmd}"
 
+func buildCmdLine* (a: Action; m: Module; env: openarray[EnvVar]): string =
+  a.buildCmdLine(m, env.toOrderedTable())
+
+
+
+func checkCmdSuccess (
+  cmdResult: tuple[output: string; exitCode: int]; cmdLine: string
+): cmdResult.type() {. raises: [ OSError ] .} =
+  if cmdResult.exitCode != QuitSuccess:
+    raise newException(
+      OSError,
+      [
+        fmt"Command failed with exit code {cmdResult.exitCode}:",
+        cmdLine
+      ].join($'\n')
+    )
+  else:
+    cmdResult
+
+
+
+func execCmdLine (cmdLine: string): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  cmdLine.gorgeEx().checkCmdSuccess(cmdLine).output
+
+
+func execCmd (
+  a: Action;
+  m: Module;
+  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()
+]): string {. compileTime, raises: [ OSError ] .} =
+  discard [
+    env.buildEnv(), CmdName, m.cmp.option(), """"{m.version}"""".fmt(), m.pkg
+  ].buildCmdLine().execCmdLine()
+
+  result = [ env.buildEnv(), CmdName, $a, m.pkg ].buildCmdLine().execCmdLine()
 
 
 func execCmds (
-  modules: openarray[Module]; env: openarray[EnvVarValue]; a: Action
-): string {. compileTime, locks: 0 .} =
-  var results = newSeqofCap[string](modules.len())
+  a: Action;
+  modules: openarray[Module];
+  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
+): string {. compileTime, raises: [ OSError ] .} =
+  toSeq(modules.items()).mapIt(a.execCmd(it, env)).joinWithSpaces()
 
-  for m in modules:
-    results.add(staticExec(m.buildCmdLine(env, a)))
-
-  result = results.join($' ')
 
 
 func getCFlags* (
-  modules: openarray[Module]; env: openarray[EnvVarValue]
-): string {. compileTime, locks: 0 .} =
-  result = modules.execCmds(env, Action.CFlags)
+  modules: openarray[Module];
+  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
+): string {. compileTime, raises: [ OSError ] .} =
+  Action.CFlags.execCmds(modules, env)
+
+
+func getCFlags* (modules: openarray[Module]; env: openarray[EnvVar]): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  modules.getCFlags(env.toOrderedTable())
+
+
+func getCFlags* (modules: openarray[Module]): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  modules.getCFlags([])
+
 
 
 func getLdFlags* (
-  modules: openarray[Module]; env: openarray[EnvVarValue]
-): string {. compileTime, locks: 0 .} =
-  result = modules.execCmds(env, Action.LdFlags)
+  modules: openarray[Module];
+  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
+): string {. compileTime, raises: [ OSError ] .} =
+  Action.LdFlags.execCmds(modules, env)
+
+
+func getLdFlags* (modules: openarray[Module]; env: openarray[EnvVar]): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  modules.getLdFlags(env.toOrderedTable())
+
+
+func getLdFlags* (modules: openarray[Module]): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  modules.getLdFlags([])
 
 
 
 static:
   doAssert(CmdName.isFileName())
+  for a in Action:
+    doAssert(($a).isUtf8())

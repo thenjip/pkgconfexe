@@ -1,3 +1,6 @@
+prefix=/usr
+
+
 Name: Deps
 Description: deps
 Version: 0.0.0

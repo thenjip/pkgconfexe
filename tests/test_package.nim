@@ -1,28 +1,50 @@
-import pkgconfexe/package
+import pkgconfexe/[ package ]
+import pkgconfexe/private/[ scanresult, seqindexslice ]
 
-import std/[ os, strformat, strscans, unittest ]
+import std/[ os, strformat, unittest ]
 
 
 include "data.nims"
 
 
 
+const CommonData = [ "gtk+", ".NET", "écrire" ]
+
+
+
 suite "package":
   test "isPackage":
-    check(not "".isPackage())
+    check:
+      not "".isPackage()
 
-    const
-      Pattern = "${scanfPackage}"
-      SomePkgNames = [ "gtk+", ".NET", "Ã˜MQ" ]
-
-    for p in SomePkgNames:
-      check(p.isPackage())
-
-      let noisyPkg = fmt"{p},d^Â¨"
-      var match = ""
+    for it in CommonData:
       check:
-        noisyPkg.scanf(Pattern, match)
-        match == p
+        it.isPackage()
 
-    for p in walkFiles(fmt"{DataDir}/*.pc"):
-      check(p.splitFile().name.isPackage())
+    for it in walkFiles(fmt"{DataDir}/*.pc"):
+      echo it
+      check:
+        it.splitFile().name.isPackage()
+
+
+
+  test "scanPackage":
+    for it in CommonData:
+      let
+        noisyPkg = it & ",d^Â¨"
+        scanResult = noisyPkg.scanPackage()
+
+      check:
+        scanResult.hasResult()
+        noisyPkg[seqIndexSlice(scanResult.start, scanResult.n)] == it
+
+
+
+  test "isPackage_const":
+    const
+      valid = "écrire".isPackage()
+      invalid = "ØMQ".isPackage() # For now since we only support ASCII digits.
+
+    check:
+      valid
+      not invalid

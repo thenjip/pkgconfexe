@@ -1,43 +1,49 @@
-import pkgconfexe/module
-import pkgconfexe/private/utf8
+import pkgconfexe/[ module ]
 
-import std/[ strscans, unittest ]
-
+import std/[ options, unittest ]
 
 
-const
-  SomeModules: array[3, Module] = [
-    (pkg: "a", cmp: Comparator.Equal, version: "6"),
-    (pkg: "C#", cmp: Comparator.GreaterEq, version: "2.0.5-4~ß"),
-    (pkg: "gtk+-3.0", cmp: Comparator.LessEq, version: "")
-  ]
 
-  SomeStringModules = [ "a==6", "C#>=2.0.5-4~ß", "gtk+-3.0" ]
+type TestData = tuple
+  input: string
+  expectedStr: string
+  expectedMod: Module
 
-  Pattern = "$[skipWhiteSpaces]${scanfModule}$[skipWhiteSpaces]"
-  Inputs = [ "a==6", " C# \t>=\f 2.0.5-4~ß", "gtk+-3.0\l\0" ]
+
+
+const SomeTestData: seq[TestData] = @[
+  ("a==6", "a==6", Module(pkg: "a", cmp: Comparator.Equal, version: "6")),
+  (
+    "C# \t>=   2.0.5-4~ß",
+    "C#>=2.0.5-4~ß",
+    Module(pkg: "C#", cmp: Comparator.GreaterEq, version: "2.0.5-4~ß")
+  ),
+  (
+    "gtk+-3.0<=	 3.10.0",
+    "gtk+-3.0<=3.10.0",
+    Module(pkg: "gtk+-3.0", cmp: Comparator.LessEq, version: "3.10.0")
+  )
+]
 
 
 
 suite "module":
   test "$":
-    for iter in SomeModules.pairs():
-      check($iter.val == SomeStringModules[iter.key])
-
-
-  test "scanfModule":
-    for iter in Inputs.pairs():
-      var match: Module
+    for it in SomeTestData:
       check:
-        iter.val.scanf(Pattern, match)
-        match == SomeModules[iter.key]
+        $it.expectedMod == it.expectedStr
 
 
-  test "toModule":
-    for iter in Inputs.pairs():
-      check(iter.val.toModule() == SomeModules[iter.key])
 
-    expect ValueError:
-      discard "".toModule()
-    expect ValueError:
-      discard "a  p".toModule()
+  test "scanModule":
+    for it in SomeTestData:
+      check:
+        it.input.scanModule().get() == it.expectedMod
+
+
+
+  test "module":
+    const m = module"a==6"
+
+    check:
+      m == SomeTestData[0].expectedMod
