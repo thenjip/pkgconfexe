@@ -18,24 +18,18 @@ type
 
 
 func `$`* (e: EnvVar): string =
-  fmt"""{$e.name}="{e.value}{'"'}"""
+  """{$e.name}="{e.value}"""".fmt()
 
 
 
 func buildEnv* (
   env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
 ): string =
-  toSeq(env.pairs()).mapIt($it.EnvVar).join($' ')
+  toSeq(env.pairs()).mapIt($it.EnvVar).joinWithSpaces()
 
 
 func buildEnv* (env: openarray[EnvVar]): string =
-  case env.len():
-    of 0:
-      ""
-    of 1:
-      $env[env.low()]
-    else:
-      env.toOrderedTable().buildEnv()
+  env.toOrderedTable().buildEnv()
 
 
 
