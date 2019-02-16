@@ -99,6 +99,12 @@ func getCFlags* (modules: openarray[Module]; env: openarray[EnvVar]): string {.
   modules.getCFlags(env.toOrderedTable())
 
 
+func getCFlags* (modules: openarray[Module]): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  modules.getCFlags([])
+
+
 
 func getLdFlags* (
   modules: openarray[Module];
@@ -111,6 +117,12 @@ func getLdFlags* (modules: openarray[Module]; env: openarray[EnvVar]): string {.
   compileTime, raises: [ OSError ]
 .} =
   modules.getLdFlags(env.toOrderedTable())
+
+
+func getLdFlags* (modules: openarray[Module]): string {.
+  compileTime, raises: [ OSError ]
+.} =
+  modules.getLdFlags([])
 
 
 
