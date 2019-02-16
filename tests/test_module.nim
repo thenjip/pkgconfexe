@@ -12,16 +12,16 @@ type TestData = tuple
 
 
 const SomeTestData: seq[TestData] = @[
-  ("a==6", "a==6", buildModule("a", Comparator.Equal, "6")),
+  ("a==6", "a==6", Module(pkg: "a", cmp: Comparator.Equal, version: "6")),
   (
     "C# \t>=   2.0.5-4~ß",
     "C#>=2.0.5-4~ß",
-    buildModule("C#", Comparator.GreaterEq, "2.0.5-4~ß")
+    Module(pkg: "C#", cmp: Comparator.GreaterEq, version: "2.0.5-4~ß")
   ),
   (
     "gtk+-3.0<=	 3.10.0",
     "gtk+-3.0<=3.10.0",
-    buildModule("gtk+-3.0", Comparator.LessEq, "3.10.0")
+    Module(pkg: "gtk+-3.0", cmp: Comparator.LessEq, version: "3.10.0")
   )
 ]
 
