@@ -1,10 +1,10 @@
 import env, module
 import private/[ filename, utf8 ]
 
-when NimVersion <= "0.19.4":
-  import std/ospaths
+when NimVersion >= "0.19.9":
+  import std/os
 else:
-  import os
+  import std/ospaths
 import std/[ sequtils, strformat, strutils, sugar, tables ]
 
 

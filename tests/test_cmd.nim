@@ -1,11 +1,11 @@
 import pkgconfexe/[ cmd ]
 import pkgconfexe/private/[ utf8 ]
 
-import std/strutils except splitWhitespace
-when NimVersion <= "0.19.4":
-  import std/ospaths
+when NimVersion >= "0.19.9":
+  import std/os
 else:
-  import os
+  import std/ospaths
+import std/strutils except splitWhitespace
 import std/[ sequtils, strformat, unicode, unittest ]
 
 import "data.nims"
