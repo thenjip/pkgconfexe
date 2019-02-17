@@ -1,0 +1,7 @@
+Name: Test
+Description: test
+Version: 0.1.0
+Requires:
+Requires.private:
+Libs: -lm
+Cflags: -I./data

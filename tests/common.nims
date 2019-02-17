@@ -10,5 +10,5 @@ const Tests* = [
   "module",
   "env",
   "cmd",
-#  "pkgconfexe"
+  "pkgconfexe"
 ]

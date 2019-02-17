@@ -3,3 +3,6 @@ const
 
   DepsPkg* = "deps"
   DummyPkg* = "dummy"
+
+  TestPkg* = "test"
+  TestHeader* = "test.h"
