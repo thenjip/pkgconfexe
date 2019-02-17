@@ -62,5 +62,5 @@ func isModule* (x: string): bool =
 
 
 
-func module* (input: static[string]): Module =
+func module* (input: string): Module =
   input.scanModule().get()
