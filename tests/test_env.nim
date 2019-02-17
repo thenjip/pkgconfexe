@@ -1,6 +1,10 @@
 import pkgconfexe/[ env ]
 
-import std/[ ospaths, strformat, strutils, unittest ]
+when NimVersion <= "0.19.4":
+  import std/ospaths
+else:
+  import os
+import std/[ strformat, strutils, unittest ]
 
 import "data.nims"
 

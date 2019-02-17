@@ -1,7 +1,11 @@
 import env, module
 import private/[ filename, utf8 ]
 
-import std/[ ospaths, sequtils, strformat, strutils, sugar, tables ]
+when NimVersion <= "0.19.4":
+  import std/ospaths
+else:
+  import os
+import std/[ sequtils, strformat, strutils, sugar, tables ]
 
 
 export env, module
