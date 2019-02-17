@@ -1,6 +1,7 @@
 import env, module
 import private/[ filename, utf8 ]
 
+from std/options import UnpackError
 from std/os import ExeExt
 import std/[ os, sequtils, strformat, strutils, sugar, tables ]
 
@@ -23,29 +24,9 @@ func buildCmdLine (components: openarray[string]): string =
   components.joinWithSpaces()
 
 
-func buildCmdLine* (
-  a: Action;
-  m: Module;
-  env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
-): string =
-  [
-    env.buildEnv(),
-    CmdName,
-    $a,
-    m.cmp.option(),
-    """"{m.version}"""".fmt(),
-    """"{m.pkg}"""".fmt()
-  ].joinWithSpaces()
-
-
-func buildCmdLine* (a: Action; m: Module; env: openarray[EnvVar]): string =
-  a.buildCmdLine(m, env.toOrderedTable())
-
-
-
 func checkCmdSuccess (
   cmdResult: tuple[output: string; exitCode: int]; cmdLine: string
-): cmdResult.type() {. raises: [ OSError ] .} =
+): cmdResult.type() =
   if cmdResult.exitCode != QuitSuccess:
     raise newException(
       OSError,
@@ -58,10 +39,7 @@ func checkCmdSuccess (
     cmdResult
 
 
-
-func execCmdLine (cmdLine: string): string {.
-  compileTime, raises: [ OSError ]
-.} =
+func execCmdLine (cmdLine: string): string {. compileTime .} =
   cmdLine.gorgeEx().checkCmdSuccess(cmdLine).output
 
 
@@ -69,19 +47,25 @@ func execCmd (
   a: Action;
   m: Module;
   env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()
-]): string {. compileTime, raises: [ OSError ] .} =
+]): string {. compileTime .} =
   discard [
-    env.buildEnv(), CmdName, m.cmp.option(), """"{m.version}"""".fmt(), m.pkg
+    env.buildEnv(),
+    CmdName,
+    m.cmp.option(),
+    """"{m.version}"""".fmt(),
+    """"{m.pkg}"""".fmt()
   ].buildCmdLine().execCmdLine()
 
-  result = [ env.buildEnv(), CmdName, $a, m.pkg ].buildCmdLine().execCmdLine()
+  result = [
+    env.buildEnv(), CmdName, $a, """"{m.pkg}"""".fmt()
+  ].buildCmdLine().execCmdLine()
 
 
 func execCmds (
   a: Action;
   modules: openarray[Module];
   env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
-): string {. compileTime, raises: [ OSError ] .} =
+): string {. compileTime .} =
   toSeq(modules.items()).mapIt(a.execCmd(it, env)).joinWithSpaces()
 
 
@@ -89,19 +73,27 @@ func execCmds (
 func getCFlags* (
   modules: openarray[Module];
   env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
-): string {. compileTime, raises: [ OSError ] .} =
+): string {. compileTime .} =
   Action.CFlags.execCmds(modules, env)
 
 
 func getCFlags* (modules: openarray[Module]; env: openarray[EnvVar]): string {.
-  compileTime, raises: [ OSError ]
+  compileTime
 .} =
   modules.getCFlags(env.toOrderedTable())
 
 
-func getCFlags* (modules: openarray[Module]): string {.
-  compileTime, raises: [ OSError ]
+func getCFlags* (modules: openarray[Module]): string {. compileTime .} =
+  modules.getCFlags([])
+
+
+func getCFlags* (modules: openarray[string]; env: openarray[EnvVar]): string {.
+  compileTime
 .} =
+  modules.mapIt(it.module()).getCFlags(env)
+
+
+func getCFlags* (modules:openarray[string]): string {. compileTime .} =
   modules.getCFlags([])
 
 
@@ -109,19 +101,27 @@ func getCFlags* (modules: openarray[Module]): string {.
 func getLdFlags* (
   modules: openarray[Module];
   env: OrderedTable[EnvVar.name.type(), EnvVar.value.type()]
-): string {. compileTime, raises: [ OSError ] .} =
+): string {. compileTime .} =
   Action.LdFlags.execCmds(modules, env)
 
 
 func getLdFlags* (modules: openarray[Module]; env: openarray[EnvVar]): string {.
-  compileTime, raises: [ OSError ]
+  compileTime
 .} =
   modules.getLdFlags(env.toOrderedTable())
 
 
-func getLdFlags* (modules: openarray[Module]): string {.
-  compileTime, raises: [ OSError ]
+func getLdFlags* (modules: openarray[Module]): string {. compileTime .} =
+  modules.getLdFlags([])
+
+
+func getLdFlags* (modules:openarray[string]; env: openarray[EnvVar]): string {.
+  compileTime
 .} =
+  modules.mapIt(it.module()).getLdFlags(env)
+
+
+func getLdFlags* (modules:openarray[string]): string {. compileTime .} =
   modules.getLdFlags([])
 
 
