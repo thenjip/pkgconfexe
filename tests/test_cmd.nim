@@ -22,41 +22,6 @@ const
 
 
 suite "cmd":
-  test "buildCmdLine":
-    type TestData = tuple
-      expected: string
-      actual: string
-
-    for it in [
-      (
-        [
-          CmdName,
-          $Action.CFlags,
-          DummyModule.cmp.option(),
-          """"{DummyModule.version}"""".fmt(),
-          """"{DummyModule.pkg}"""".fmt()
-        ].join($' '),
-        buildCmdLine(Action.CFlags, DummyModule, [])
-      ),
-      (
-        [
-          SomeEnvVars.buildEnv(),
-          CmdName,
-          $Action.LdFlags,
-          DepsModule.cmp.option(),
-          """"{DepsModule.version}"""".fmt(),
-          """"{DepsModule.pkg}"""".fmt()
-        ].join($' '),
-        buildCmdLine(Action.LdFlags, DepsModule, SomeEnvVars)
-      )
-    ]:
-      (proc (it: TestData) =
-        check:
-          it.expected == it.actual
-      )(it)
-
-
-
   test "getCFlags":
     type TestData = tuple
       expected: string
