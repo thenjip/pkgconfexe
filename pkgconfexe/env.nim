@@ -1,7 +1,6 @@
 import private/[ filename, utf8 ]
 
-from std/os import PathSep
-import std/[ sequtils, strformat, strutils, tables ]
+import std/[ ospaths, sequtils, strformat, strutils, tables ]
 
 
 
@@ -18,7 +17,7 @@ type
 
 
 func `$`* (e: EnvVar): string =
-  """{$e.name}="{e.value}"""".fmt()
+  fmt"{$e.name}={e.value.quoteShell()}"
 
 
 

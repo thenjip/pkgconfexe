@@ -1,9 +1,7 @@
 import env, module
 import private/[ filename, utf8 ]
 
-from std/options import UnpackError
-from std/os import ExeExt
-import std/[ os, sequtils, strformat, strutils, sugar, tables ]
+import std/[ ospaths, sequtils, strformat, strutils, sugar, tables ]
 
 
 export env, module
@@ -52,12 +50,12 @@ func execCmd (
     env.buildEnv(),
     CmdName,
     m.cmp.option(),
-    """"{m.version}"""".fmt(),
-    """"{m.pkg}"""".fmt()
+    fmt"{m.version.quoteShell()}",
+    fmt"{m.pkg.quoteShell()}"
   ].buildCmdLine().execCmdLine()
 
   result = [
-    env.buildEnv(), CmdName, $a, """"{m.pkg}"""".fmt()
+    env.buildEnv(), CmdName, $a, fmt"{m.pkg.quoteShell()}"
   ].buildCmdLine().execCmdLine()
 
 
