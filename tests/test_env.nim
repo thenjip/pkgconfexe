@@ -1,7 +1,6 @@
 import pkgconfexe/[ env ]
 
-from std/os import CurDir, DirSep, PathSep
-import std/[ os, strformat, strutils, unittest ]
+import std/[ ospaths, strformat, strutils, unittest ]
 
 import "data.nims"
 
@@ -15,9 +14,9 @@ const
   SomeSysrootDir = (name: EnvVarName.PkgConfigSysrootDir, value: DataDir)
 
   SomeConfigPathString =
-    fmt"""{$SomeConfigPath.name}="{SomeConfigPath.value}{'"'}"""
+    fmt"{$SomeConfigPath.name}={SomeConfigPath.value.quoteShell()}"
   SomeSysrootDirString =
-    fmt"""{$SomeSysrootDir.name}="{SomeSysrootDir.value}{'"'}"""
+    fmt"{$SomeSysrootDir.name}={SomeSysrootDir.value.quoteShell()}"
 
 
 

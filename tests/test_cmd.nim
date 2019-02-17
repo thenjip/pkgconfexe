@@ -2,7 +2,7 @@ import pkgconfexe/[ cmd ]
 import pkgconfexe/private/[ utf8 ]
 
 import std/strutils except splitWhitespace
-import std/[ os, sequtils, strformat, unicode, unittest ]
+import std/[ ospaths, sequtils, strformat, unicode, unittest ]
 
 import "data.nims"
 
@@ -12,12 +12,9 @@ const
   DepsModule = Module(pkg: DepsPkg, cmp: Comparator.LessEq, version: "0.0.1")
   DummyModule = Module(pkg: DummyPkg, cmp: Comparator.Equal, version: "0.0.0")
 
-  SomeEnvVars = [
-    (
-      name: EnvVarName.PkgConfigPath,
-      value: currentSourcePath().splitFile().dir / DataDir
-    )
-  ]
+  SomeEnvVars = {
+    EnvVarName.PkgConfigPath: currentSourcePath().splitFile().dir / DataDir
+  }
 
 
 

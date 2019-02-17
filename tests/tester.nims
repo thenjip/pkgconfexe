@@ -1,13 +1,18 @@
-import std/[ strformat ]
+import std/[ ospaths, strformat ]
 
 import "common.nims"
 
 
 
-proc doExec (file: string) =
-  let f = fmt"test_{$file}.nim"
+func buildCmd (f: string): string =
+  if "CC".existsEnv():
+    fmt"""c -r --cc:{"CC".getEnv().quoteShell()} {f.quoteShell()}"""
+  else:
+    fmt"c -r {f.quoteShell()}"
 
-  selfExec(fmt"""c -r {f}""")
+
+proc doExec (file: string) =
+  selfExec(fmt"test_{file}.nim".buildCmd())
 
 
 

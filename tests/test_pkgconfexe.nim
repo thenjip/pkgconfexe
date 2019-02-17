@@ -1,6 +1,6 @@
 import pkgconfexe
 
-import std/[ os, strformat, unittest ]
+import std/[ ospaths, strformat, unittest ]
 
 import "data.nims"
 
